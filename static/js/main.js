@@ -74,6 +74,7 @@ async function init() {
 
                 updateSelects(services, categories);
                 initNavbar();
+                debugLog('Вызвана функция initNavbar()');
 
                 elements.serviceSelect.addEventListener('change', onServiceChange);
                 elements.prevSlide.addEventListener('click', prevSlide);
@@ -341,13 +342,25 @@ async function updateSubscriptionsList() {
 
 // Показать модальное окно
 function showModal(title) {
+    console.log('showModal called with title:', title);
+    debugLog(`Вызвана функция showModal с заголовком: ${title}`);
+
+    console.log('subscriptionModal element:', elements.subscriptionModal);
+    debugLog(`Элемент subscriptionModal: ${elements.subscriptionModal ? 'найден' : 'не найден'}`);
+
     elements.modalTitle.textContent = title;
     elements.subscriptionModal.style.display = 'block';
-    toggleNavbar(false); // Скрываем navbar
+
+    console.log('Modal display style set to block');
+    debugLog('Стиль отображения модального окна установлен в block');
+
+    toggleNavbar(false);
+    debugLog('Вызвана функция toggleNavbar(false)');
+
     tg.MainButton.setText('Сохранить');
     tg.MainButton.show();
+    debugLog('Показана главная кнопка Telegram с текстом "Сохранить"');
 }
-
 // Закрыть модальное окно
 function closeModal() {
     elements.subscriptionModal.style.display = 'none';
@@ -496,27 +509,41 @@ function skipSlide() {
 
 // Инициализация нижней навигации
 function initNavbar() {
+    debugLog('Инициализация навигационной панели');
+
     const navActions = {
         'navSubscriptions': fetchSubscriptions,
         'navAddSubscription': () => {
+            debugLog('Нажата кнопка добавления подписки');
             showModal('Добавить подписку');
             resetForm();
             currentSlide = 1;
             showSlide(currentSlide);
         },
-        'navCalendar': showCalendar
+        'navCalendar': () => {
+            debugLog('Нажата кнопка календаря');
+        }
     };
 
     Object.entries(navActions).forEach(([id, action]) => {
-        document.getElementById(id).addEventListener('click', action);
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('click', action);
+            debugLog(`Установлен обработчик события для элемента с id: ${id}`);
+        } else {
+            debugLog(`Элемент с id ${id} не найден`);
+        }
     });
 
     // Обработчик для кнопки Telegram
     tg.MainButton.onClick(() => {
+        debugLog('Нажата главная кнопка Telegram');
         if (!isSaving) {
             saveSubscription();
         }
     });
+
+    debugLog('Инициализация навигационной панели завершена');
 }
 // Обновление выпадающего списка
 function updateSelect(selectElement, options, valueKey, textKey, addCustomOption = false) {
