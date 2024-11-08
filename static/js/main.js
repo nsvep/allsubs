@@ -162,7 +162,7 @@ function displaySubscriptions(subscriptions) {
         const noSubscriptionsElement = document.createElement('div');
         noSubscriptionsElement.className = 'no-subscriptions';
         noSubscriptionsElement.innerHTML = `
-                <div class="illustration">
+            <div class="illustration">
                 <i class="fas fa-list-alt"></i>
                 <h2>Нет активных подписок</h2>
                 <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
@@ -176,6 +176,7 @@ function displaySubscriptions(subscriptions) {
         subscriptions.forEach(sub => {
             const subElement = document.createElement('div');
             subElement.className = 'subscription-item';
+            subElement.setAttribute('data-id', sub.id);
 
             // Форматируем дату следующего платежа
             const nextPaymentDate = new Date(sub.start_date);
@@ -184,25 +185,62 @@ function displaySubscriptions(subscriptions) {
             // Определяем класс для суммы (для возможной цветовой индикации)
             const amountClass = sub.amount > 1000 ? 'subscription-amount high' : 'subscription-amount';
 
+            // Создаем элементы для каждого поля подписки
+            const createField = (className, icon, content) => `
+                <p class="${className}">
+                    <i class="${icon}"></i>
+                    <span class="field-content">${content}</span>
+                </p>
+            `;
+
             subElement.innerHTML = `
                 <div class="subscription-header">
-                    <h3>${sub.service_name}</h3>
+                    <h3 class="subscription-service_name">${sub.service_name}</h3>
                     <button class="btn-more" onclick="showSubscriptionMenu(${sub.id})">⋮</button>
                 </div>
-                <p class="subscription-category"><i class="fas fa-tag"></i> ${sub.category_name}</p>
-                <p class="subscription-next-payment"><i class="far fa-calendar-alt"></i> Следующий платеж: ${formattedDate}</p>
-                <p class="${amountClass}"><i class="fas fa-money-bill-wave"></i> ${sub.amount} ${sub.currency}</p>
+                ${createField('subscription-category_name', 'fas fa-tag', sub.category_name)}
+                ${createField('subscription-next-payment', 'far fa-calendar-alt', `Следующий платеж: ${formattedDate}`)}
+                ${createField(`subscription-amount ${amountClass}`, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
                 <div id="menu-${sub.id}" class="subscription-menu">
                     <button onclick="editSubscription(${sub.id})"><i class="fas fa-edit"></i> Редактировать</button>
                     <button onclick="archiveSubscription(${sub.id})"><i class="fas fa-archive"></i> Архивировать</button>
                     <button onclick="deleteSubscription(${sub.id})"><i class="fas fa-trash-alt"></i> Удалить</button>
                 </div>
             `;
+
+            // Добавляем обработчик для анимации при нажатии
+            subElement.addEventListener('click', function(e) {
+                if (!e.target.closest('.btn-more') && !e.target.closest('.subscription-menu')) {
+                    this.classList.add('subscription-item-pressed');
+                    setTimeout(() => this.classList.remove('subscription-item-pressed'), 200);
+                }
+            });
+
             subscriptionsList.appendChild(subElement);
         });
 
         elements.subscriptions.appendChild(subscriptionsList);
     }
+
+    // Добавляем сортировку подписок
+    const sortSubscriptions = (sortBy) => {
+        const items = Array.from(subscriptionsList.children);
+        items.sort((a, b) => {
+            const aValue = a.querySelector(`.subscription-${sortBy} .field-content`).textContent;
+            const bValue = b.querySelector(`.subscription-${sortBy} .field-content`).textContent;
+            return aValue.localeCompare(bValue);
+        });
+        items.forEach(item => subscriptionsList.appendChild(item));
+    };
+
+    // Добавляем кнопки сортировки
+    const sortButtons = document.createElement('div');
+    sortButtons.className = 'sort-buttons';
+    sortButtons.innerHTML = `
+        <button onclick="sortSubscriptions('service_name')">Сортировать по названию</button>
+        <button onclick="sortSubscriptions('amount')">Сортировать по сумме</button>
+    `;
+    elements.subscriptions.insertBefore(sortButtons, subscriptionsList);
 }
 
 function showSubscriptionMenu(subscriptionId) {
@@ -597,6 +635,153 @@ function toggleNavbar(show) {
         navbar.style.display = 'flex';
     } else {
         navbar.style.display = 'none';
+    }
+}
+
+async function editSubscription(subscriptionId) {
+    const subscriptionItem = document.querySelector(`.subscription-item[data-id="${subscriptionId}"]`);
+    if (!subscriptionItem) return;
+
+    // Скрываем меню подписки
+    const subscriptionMenu = subscriptionItem.querySelector('.subscription-menu');
+    if (subscriptionMenu) {
+        subscriptionMenu.style.display = 'none';
+    }
+
+    subscriptionItem.classList.add('editing');
+
+    const currentServiceName = subscriptionItem.querySelector('.subscription-service_name').textContent;
+    const currentCategoryName = subscriptionItem.querySelector('.subscription-category_name .field-content').textContent;
+    const currentAmount = subscriptionItem.querySelector('.subscription-amount .field-content').textContent.split(' ')[0];
+    const currentCurrency = subscriptionItem.querySelector('.subscription-amount .field-content').textContent.split(' ')[1];
+
+    const editForm = document.createElement('form');
+    editForm.className = 'edit-form';
+    editForm.innerHTML = `
+        <div class="form-group">
+            <label for="edit-service">Сервис</label>
+            <select id="edit-service" required>
+                <option value="">Выберите сервис</option>
+                ${services.map(service => `<option value="${service.name}" ${service.name === currentServiceName ? 'selected' : ''}>${service.name}</option>`).join('')}
+                <option value="custom">Другой (свой вариант)</option>
+            </select>
+            <input type="text" id="edit-custom-service" style="display: none;" placeholder="Введите название сервиса">
+        </div>
+        <div class="form-group">
+            <label for="edit-category">Категория</label>
+            <select id="edit-category" ${currentServiceName !== 'custom' ? 'disabled' : ''}>
+                ${categories.map(category => `<option value="${category.name}" ${category.name === currentCategoryName ? 'selected' : ''}>${category.name}</option>`).join('')}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="edit-amount">Сумма</label>
+            <input type="number" id="edit-amount" value="${currentAmount}" required>
+        </div>
+        <div class="form-group">
+            <label for="edit-currency">Валюта</label>
+            <select id="edit-currency" required>
+                <option value="RUB" ${currentCurrency === 'RUB' ? 'selected' : ''}>RUB</option>
+                <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>USD</option>
+                <option value="EUR" ${currentCurrency === 'EUR' ? 'selected' : ''}>EUR</option>
+            </select>
+        </div>
+        <div class="edit-actions">
+            <button type="submit" class="btn-save">Сохранить</button>
+            <button type="button" class="btn-cancel">Отмена</button>
+        </div>
+    `;
+
+    const serviceSelect = editForm.querySelector('#edit-service');
+    const customServiceInput = editForm.querySelector('#edit-custom-service');
+    const categorySelect = editForm.querySelector('#edit-category');
+
+    serviceSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            customServiceInput.style.display = 'block';
+            categorySelect.disabled = false;
+        } else {
+            customServiceInput.style.display = 'none';
+            categorySelect.disabled = true;
+            const selectedService = services.find(s => s.name === this.value);
+            if (selectedService) {
+                categorySelect.value = selectedService.category;
+            }
+        }
+    });
+
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const updatedData = {
+            service_name: serviceSelect.value === 'custom' ? customServiceInput.value : serviceSelect.value,
+            category_name: categorySelect.value,
+            amount: editForm.querySelector('#edit-amount').value,
+            currency: editForm.querySelector('#edit-currency').value
+        };
+
+        try {
+            const response = await fetch(`/update_subscription/${subscriptionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedData)
+            });
+
+            if (response.ok) {
+                await updateSubscriptionsList();
+            } else {
+                throw new Error('Failed to update subscription');
+            }
+        } catch (error) {
+            console.error('Error updating subscription:', error);
+            tg.showPopup({
+                title: 'Ошибка',
+                message: 'Не удалось обновить подписку. Пожалуйста, попробуйте еще раз.',
+                buttons: [{ type: 'close' }]
+            });
+        } finally {
+            // Возвращаем видимость меню подписки и удаляем форму редактирования
+            if (subscriptionMenu) {
+                subscriptionMenu.style.display = '';
+            }
+            subscriptionItem.classList.remove('editing');
+            editForm.remove();
+        }
+    });
+
+    editForm.querySelector('.btn-cancel').addEventListener('click', () => {
+        // Возвращаем видимость меню подписки и удаляем форму редактирования
+        if (subscriptionMenu) {
+            subscriptionMenu.style.display = '';
+        }
+        subscriptionItem.classList.remove('editing');
+        editForm.remove();
+    });
+
+    subscriptionItem.appendChild(editForm);
+}
+
+function sortSubscriptions(sortBy) {
+    const subscriptionsList = document.querySelector('.subscriptions-list');
+    const items = Array.from(subscriptionsList.children);
+    items.sort((a, b) => {
+        const aValue = a.querySelector(`.subscription-${sortBy} .field-content`).textContent;
+        const bValue = b.querySelector(`.subscription-${sortBy} .field-content`).textContent;
+        if (sortBy === 'amount') {
+            return parseFloat(aValue) - parseFloat(bValue);
+        }
+        return aValue.localeCompare(bValue);
+    });
+    items.forEach(item => subscriptionsList.appendChild(item));
+}
+
+async function loadServicesAndCategories() {
+    try {
+        const servicesResponse = await fetch('/get_services');
+        services = await servicesResponse.json();
+
+        const categoriesResponse = await fetch('/get_categories');
+        categories = await categoriesResponse.json();
+    } catch (error) {
+        console.error('Error loading services and categories:', error);
     }
 }
 

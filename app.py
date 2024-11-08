@@ -402,6 +402,33 @@ def unarchive_subscription(subscription_id):
             "subscription_id": subscription.id
         })
 
+
+@app.route('/update_subscription/<int:subscription_id>', methods=['POST'])
+def update_subscription(subscription_id):
+    data = request.json
+    subscription = Subscription.query.get(subscription_id)
+    if not subscription:
+        return jsonify({"error": "Subscription not found"}), 404
+
+    service = Service.query.filter_by(name=data['service_name']).first()
+    if service:
+        subscription.service_id = service.id
+        subscription.category_id = service.category_id
+    else:
+        subscription.service_name = data['service_name']
+        category = Category.query.filter_by(name=data['category_name']).first()
+        if category:
+            subscription.category_id = category.id
+        else:
+            return jsonify({"error": "Category not found"}), 400
+
+    subscription.amount = float(data['amount'])
+    subscription.currency = data['currency']
+
+    db.session.commit()
+
+    return jsonify({"message": "Subscription updated successfully"}), 200
+
 import atexit
 atexit.register(lambda: scheduler.shutdown())
 
