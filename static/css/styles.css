@@ -396,31 +396,46 @@ h1 {
 }
 
 /* Пустое состояние */
-.no-subscriptions,
-.empty-state {
+.illustration {
     text-align: center;
     padding: 40px 20px;
-    background-color: var(--tg-theme-secondary-bg-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin: 20px;
 }
 
-.no-subscriptions p,
-.empty-state p {
-    font-size: 18px;
-    color: var(--tg-theme-text-color);
-    margin-bottom: 20px;
+.illustration:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
 }
 
-.no-subscriptions video {
-    max-width: 200px;
-    margin: 20px 0;
-}
-
-.empty-state .illustration {
+.illustration i {
     font-size: 80px;
     color: var(--tg-theme-button-color);
     margin-bottom: 20px;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.illustration:hover i {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+.illustration h2 {
+    font-size: 22px;
+    color: var(--tg-theme-text-color);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.illustration p {
+    font-size: 16px;
+    color: var(--tg-theme-hint-color);
+    margin-bottom: 0;
+    line-height: 1.6;
 }
 
 /* Медиа-запросы */

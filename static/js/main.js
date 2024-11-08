@@ -161,12 +161,10 @@ function displaySubscriptions(subscriptions) {
         const noSubscriptionsElement = document.createElement('div');
         noSubscriptionsElement.className = 'no-subscriptions';
         noSubscriptionsElement.innerHTML = `
-            <div class="empty-state">
                 <div class="illustration">
-                    <i class="fas fa-rocket"></i>
-                </div>
-                <h2>Начните управлять своими подписками!</h2>
-                <p>Добавьте свою первую подписку и начните экономить время и деньги.</p>
+                <i class="fas fa-list-alt"></i>
+                <h2>Нет активных подписок</h2>
+                <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
             </div>
         `;
         elements.subscriptions.appendChild(noSubscriptionsElement);
