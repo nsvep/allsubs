@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Менеджер подписок</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+<div id="debug-output" data-admin-only style="display: none;">
+    <h3>Debug Output</h3>
+    <div id="debug-content"></div>
+    <button id="clear-debug">Clear</button>
+</div>
+    <div class="container">
+        <header>
+        </header>
+        <main>
+            <section id="user-info"></section>
+            <section id="subscriptions"></section>
+        </main>
+    </div>
+
+    <!-- Модальное окно для добавления/редактирования подписки -->
+    <div id="subscriptionModal" class="modal" aria-labelledby="modalTitle" role="dialog">
+        <div class="modal-content">
+            <button class="close" aria-label="Закрыть">&times;</button>
+            <div id="subscriptionSlides" class="slides-container">
+                <div class="slide" id="slide1">
+                    <h2 id="modalTitle">Добавить подписку</h2>
+                    <div class="form-group">
+                        <label for="serviceSelect">Сервис</label>
+                        <select id="serviceSelect"></select>
+                    </div>
+                    <div class="form-group" id="customServiceGroup" style="display: none;">
+                        <label for="customService">Название сервиса</label>
+                        <input type="text" id="customService">
+                    </div>
+                    <div class="form-group" id="categoryGroup" style="display: none;">
+                        <label for="categorySelect">Категория</label>
+                        <select id="categorySelect"></select>
+                    </div>
+                </div>
+                <div class="slide" id="slide2" style="display: none;">
+                    <h2>Детали платежа</h2>
+                    <div class="form-group">
+                        <label for="nextPaymentDate">Дата следующего платежа</label>
+                        <input type="date" id="nextPaymentDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Сумма</label>
+                        <input type="number" id="amount" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">Валюта</label>
+                        <select id="currency">
+                            <option value="RUB">Рубль</option>
+                            <option value="USD">Доллар</option>
+                            <option value="EUR">Евро</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="slide" id="slide3" style="display: none;">
+                    <h2>Дополнительная информация</h2>
+                    <div class="form-group">
+                        <label for="bank">Банк</label>
+                        <select id="bank">
+                            <option value="">Выберите банк</option>
+                            <option value="Сбербанк">Сбербанк</option>
+                            <option value="Тинькофф">Тинькофф</option>
+                            <option value="ВТБ">ВТБ</option>
+                            <!-- Добавьте другие банки по необходимости -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cardLast4">Последние 4 цифры карты</label>
+                        <input type="text" id="cardLast4" maxlength="4" pattern="\d{4}">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="sendNotifications">
+                            Присылать уведомления об оплате
+                        </label>
+                    </div>
+                </div>
+                <div class="slide-controls">
+                    <button id="prevSlide" class="btn" style="display: none;">Назад</button>
+                    <button id="nextSlide" class="btn">Далее</button>
+                    <button id="skipSlide" class="btn" style="display: none;">Пропустить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижний navbar -->
+    <nav class="bottom-navbar">
+    <a href="#" id="navSubscriptions" class="nav-item">
+        <i class="fas fa-list"></i>
+        <span>Подписки</span>
+    </a>
+    <a href="#" id="navAddSubscription" class="nav-item nav-item-center">
+        <div class="plus-icon">
+            <i class="fas fa-plus"></i>
+        </div>
+    </a>
+    <a href="#" id="navCalendar" class="nav-item">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Календарь</span>
+    </a>
+    </nav>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+</body>
+</html>

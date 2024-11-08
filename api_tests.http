@@ -1,0 +1,5 @@
+### Manually update payments
+POST http://localhost:5000/manual_update_payments
+
+### Check subscription with ID 3
+GET http://localhost:5000/check_subscription/3

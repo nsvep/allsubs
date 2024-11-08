@@ -1,0 +1,549 @@
+/* Основные переменные */
+:root {
+    --tg-theme-bg-color: var(--tg-theme-bg-color, #ffffff);
+    --tg-theme-text-color: var(--tg-theme-text-color, #000000);
+    --tg-theme-hint-color: var(--tg-theme-hint-color, #999999);
+    --tg-theme-link-color: var(--tg-theme-link-color, #2481cc);
+    --tg-theme-button-color: var(--tg-theme-button-color, #5288c1);
+    --tg-theme-button-text-color: var(--tg-theme-button-text-color, #ffffff);
+    --tg-theme-secondary-bg-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+
+    --navbar-height: 60px;
+    --content-max-width: 800px;
+}
+
+/* Сброс и общие стили */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+    margin: 0;
+    padding: 0;
+    line-height: 1.5;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Контейнер */
+.container {
+    flex: 1 0 auto;
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: calc(var(--navbar-height) + 20px);
+    width: 100%;
+}
+
+/* Заголовки */
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+/* Карточки */
+.card {
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Подписки */
+.subscription-item {
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.subscription-item:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.subscription-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.subscription-header h3 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--tg-theme-text-color);
+}
+
+.subscription-item p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color);
+}
+
+.subscription-amount {
+    font-weight: bold;
+    color: var(--tg-theme-button-color);
+}
+
+.subscription-amount.high {
+    color: #e74c3c;
+}
+
+/* Кнопки */
+.btn {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: var(--tg-theme-link-color);
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    position: relative;
+    background-color: var(--tg-theme-bg-color);
+    margin: 0;
+    padding: 40px 20px 20px;
+    border: none;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.close {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.close:hover {
+    background-color: var(--tg-theme-link-color);
+}
+
+/* Формы */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--tg-theme-hint-color);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 8px;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+}
+
+/* Нижняя навигация */
+.bottom-navbar {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--tg-theme-bg-color);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-decoration: none;
+    color: var(--tg-theme-hint-color);
+    font-size: 12px;
+    transition: color 0.3s ease;
+}
+
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
+
+.nav-item.active {
+    color: var(--tg-theme-button-color);
+}
+
+.nav-item-center {
+    transform: translateY(-20px);
+}
+
+.plus-icon {
+    width: 50px;
+    height: 50px;
+    background-color: var(--tg-theme-button-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--tg-theme-button-text-color);
+    font-size: 24px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Календарь */
+.calendar-container {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.calendar-day:hover {
+    background-color: var(--tg-theme-hint-color);
+}
+
+.calendar-day.has-subscriptions {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.calendar-day.weekday {
+    font-weight: bold;
+    background-color: var(--tg-theme-bg-color);
+}
+
+#modalDate {
+    margin-top: 0;
+    color: var(--tg-theme-text-color);
+}
+
+#prevMonth,
+#nextMonth {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+#prevMonth:hover,
+#nextMonth:hover {
+    opacity: 0.8;
+}
+
+#currentMonth {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--tg-theme-text-color);
+}
+
+/* Слайды */
+.slide-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.slide-controls .btn {
+    min-width: 100px;
+    padding: 10px 15px;
+    margin: 0 5px;
+    font-weight: 500;
+}
+
+.slide-controls .btn:first-child {
+    background-color: var(--tg-theme-secondary-bg-color);
+    color: var(--tg-theme-text-color);
+    border: 1px solid var(--tg-theme-button-color);
+}
+
+.slide-controls .btn:last-child {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.slide-controls .btn#skipSlide {
+    background-color: transparent;
+    color: var(--tg-theme-link-color);
+    text-decoration: underline;
+    padding: 5px 10px;
+}
+
+/* Отладка */
+#debug-content p {
+    margin: 5px 0;
+    color: var(--tg-theme-text-color);
+    line-height: 1.4;
+}
+
+#clear-debug {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+#clear-debug:hover {
+    opacity: 0.9;
+}
+
+/* Меню подписки */
+.subscription-actions {
+    position: relative;
+}
+
+.btn-more {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    padding: 0 8px;
+}
+
+.subscription-menu {
+    display: none;
+    position: absolute;
+    right: 16px;
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+.subscription-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 16px;
+    border: none;
+    background: none;
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.subscription-menu button:hover {
+    background-color: var(--tg-theme-secondary-bg-color);
+}
+
+/* Пустое состояние */
+.no-subscriptions,
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.no-subscriptions p,
+.empty-state p {
+    font-size: 18px;
+    color: var(--tg-theme-text-color);
+    margin-bottom: 20px;
+}
+
+.no-subscriptions video {
+    max-width: 200px;
+    margin: 20px 0;
+}
+
+.empty-state .illustration {
+    font-size: 80px;
+    color: var(--tg-theme-button-color);
+    margin-bottom: 20px;
+}
+
+/* Медиа-запросы */
+@media (max-width: 600px) {
+    .modal-content {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .form-group input,
+    .form-group select,
+    .btn {
+        font-size: 16px;
+        padding: 12px 10px;
+    }
+
+    .bottom-navbar {
+        padding: 8px 0;
+    }
+
+    .nav-item i {
+        font-size: 18px;
+    }
+
+    .nav-item span {
+        font-size: 10px;
+    }
+
+    .plus-icon {
+        width: 45px;
+        height: 45px;
+    }
+
+    .subscription-item {
+        padding: 12px;
+    }
+
+    .subscription-header h3 {
+        font-size: 16px;
+    }
+
+    .subscription-menu {
+        right: 12px;
+    }
+
+    .subscription-menu button {
+        padding: 10px 14px;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    .container {
+        padding-bottom: calc(var(--navbar-height) + env(safe-area-inset-bottom));
+    }
+
+    .bottom-navbar {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --tg-theme-bg-color: #1e1e1e;
+        --tg-theme-text-color: #ffffff;
+        --tg-theme-hint-color: #a0a0a0;
+        --tg-theme-link-color: #4a9eff;
+        --tg-theme-button-color: #3a7bd5;
+        --tg-theme-secondary-bg-color: #2c2c2c;
+    }
+
+    .card {
+        box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+    }
+}
+
+/* Улучшения для высоких экранов */
+@media (min-height: 800px) {
+    .container {
+        padding-top: 32px;
+    }
+
+    h1 {
+        margin-bottom: 24px;
+    }
+}
+
+/* Плавные переходы */
+.smooth-transition {
+    transition: all 0.3s ease;
+}
+
+/* Печать */
+@media print {
+    .modal,
+    .btn,
+    .bottom-navbar {
+        display: none !important;
+    }
+
+    body {
+        padding: 0;
+    }
+
+    .container {
+        max-width: none;
+    }
+
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
