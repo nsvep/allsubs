@@ -157,7 +157,9 @@ async function fetchSubscriptions() {
 
 // Отображение списка подписок
 function displaySubscriptions(subscriptions) {
+    debugLog('Начало отображения подписок');
     elements.subscriptions.innerHTML = '';
+
     if (subscriptions.length === 0) {
         const noSubscriptionsElement = document.createElement('div');
         noSubscriptionsElement.className = 'no-subscriptions';
@@ -169,6 +171,7 @@ function displaySubscriptions(subscriptions) {
             </div>
         `;
         elements.subscriptions.appendChild(noSubscriptionsElement);
+        debugLog('Отображено сообщение об отсутствии подписок');
     } else {
         const subscriptionsList = document.createElement('div');
         subscriptionsList.className = 'subscriptions-list';
@@ -193,54 +196,97 @@ function displaySubscriptions(subscriptions) {
                 </p>
             `;
 
-            subElement.innerHTML = `
+            // Создаем базовую структуру подписки
+            let subscriptionHTML = `
                 <div class="subscription-header">
                     <h3 class="subscription-service_name">${sub.service_name}</h3>
                     <button class="btn-more" onclick="showSubscriptionMenu(${sub.id})">⋮</button>
                 </div>
                 ${createField('subscription-category_name', 'fas fa-tag', sub.category_name)}
                 ${createField('subscription-next-payment', 'far fa-calendar-alt', `Следующий платеж: ${formattedDate}`)}
-                ${createField(`subscription-amount ${amountClass}`, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
-                <div id="menu-${sub.id}" class="subscription-menu">
-                    <button onclick="editSubscription(${sub.id})"><i class="fas fa-edit"></i> Редактировать</button>
-                    <button onclick="archiveSubscription(${sub.id})"><i class="fas fa-archive"></i> Архивировать</button>
-                    <button onclick="deleteSubscription(${sub.id})"><i class="fas fa-trash-alt"></i> Удалить</button>
+                ${createField(amountClass, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
+            `;
+
+            // Добавляем информацию о банке и карте, только если они указаны
+            if (sub.bank) {
+                subscriptionHTML += createField('subscription-bank', 'fas fa-university', sub.bank);
+            }
+            if (sub.card_last_4) {
+                subscriptionHTML += createField('subscription-card', 'far fa-credit-card', `**** ${sub.card_last_4}`);
+            }
+
+            // Добавляем меню подписки
+            subscriptionHTML += `
+                <div class="subscription-menu" id="menu-${sub.id}" style="display: none;">
+                    <button onclick="editSubscription(${sub.id})">Редактировать</button>
+                    <button onclick="archiveSubscription(${sub.id})">Архивировать</button>
+                    <button onclick="deleteSubscription(${sub.id})">Удалить</button>
                 </div>
             `;
 
-            // Добавляем обработчик для анимации при нажатии
-            subElement.addEventListener('click', function(e) {
-                if (!e.target.closest('.btn-more') && !e.target.closest('.subscription-menu')) {
-                    this.classList.add('subscription-item-pressed');
-                    setTimeout(() => this.classList.remove('subscription-item-pressed'), 200);
-                }
-            });
-
+            subElement.innerHTML = subscriptionHTML;
             subscriptionsList.appendChild(subElement);
         });
 
         elements.subscriptions.appendChild(subscriptionsList);
+        debugLog(`Отображено ${subscriptions.length} подписок`);
+
+        // Добавляем сортировку подписок
+        const sortSubscriptions = (sortBy) => {
+            debugLog(`Сортировка подписок по ${sortBy}`);
+            const items = Array.from(subscriptionsList.children);
+            items.sort((a, b) => {
+                if (sortBy === 'next_payment') {
+                    const aDate = new Date(a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
+                    const bDate = new Date(b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
+                    return aDate - bDate;
+                } else if (sortBy === 'amount') {
+                    const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
+                    const bAmount = parseFloat(b.querySelector('.subscription-amount .field-content').textContent);
+                    return aAmount - bAmount;
+                }
+            });
+            items.forEach(item => subscriptionsList.appendChild(item));
+
+            // Обновляем активную кнопку сортировки
+            document.querySelectorAll('.sort-button').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.sort === sortBy) {
+                    btn.classList.add('active');
+                }
+            });
+        };
+
+        // Добавляем кнопки сортировки
+        const sortButtonsContainer = document.createElement('div');
+        sortButtonsContainer.className = 'sort-buttons-container';
+        sortButtonsContainer.innerHTML = `
+            <span class="sort-label">Сортировать по:</span>
+            <button class="sort-button" data-sort="next_payment">
+                <i class="fas fa-calendar-alt"></i> Дате платежа
+            </button>
+            <button class="sort-button" data-sort="amount">
+                <i class="fas fa-money-bill-wave"></i> Сумме
+            </button>
+        `;
+
+        // Добавляем обработчики событий для кнопок
+        sortButtonsContainer.querySelectorAll('.sort-button').forEach(button => {
+            button.addEventListener('click', () => {
+                sortSubscriptions(button.dataset.sort);
+            });
+        });
+
+        elements.subscriptions.insertBefore(sortButtonsContainer, subscriptionsList);
+
+        // Делаем функцию сортировки доступной глобально
+        window.sortSubscriptions = sortSubscriptions;
+
+        // Сортируем по дате платежа по умолчанию
+        sortSubscriptions('next_payment');
     }
 
-    // Добавляем сортировку подписок
-    const sortSubscriptions = (sortBy) => {
-        const items = Array.from(subscriptionsList.children);
-        items.sort((a, b) => {
-            const aValue = a.querySelector(`.subscription-${sortBy} .field-content`).textContent;
-            const bValue = b.querySelector(`.subscription-${sortBy} .field-content`).textContent;
-            return aValue.localeCompare(bValue);
-        });
-        items.forEach(item => subscriptionsList.appendChild(item));
-    };
-
-    // Добавляем кнопки сортировки
-    const sortButtons = document.createElement('div');
-    sortButtons.className = 'sort-buttons';
-    sortButtons.innerHTML = `
-        <button onclick="sortSubscriptions('service_name')">Сортировать по названию</button>
-        <button onclick="sortSubscriptions('amount')">Сортировать по сумме</button>
-    `;
-    elements.subscriptions.insertBefore(sortButtons, subscriptionsList);
+    debugLog('Завершено отображение подписок');
 }
 
 function showSubscriptionMenu(subscriptionId) {
@@ -613,7 +659,7 @@ function debugLog(message) {
 
 function showDebugOutputForAdmin(userId) {
     const debugOutput = document.getElementById('debug-output');
-    if (debugOutput && userId === 3) {
+    if (debugOutput && userId === 1) {
         debugOutput.style.display = 'block';
         const clearButton = document.getElementById('clear-debug');
         if (clearButton) {
@@ -757,20 +803,6 @@ async function editSubscription(subscriptionId) {
     });
 
     subscriptionItem.appendChild(editForm);
-}
-
-function sortSubscriptions(sortBy) {
-    const subscriptionsList = document.querySelector('.subscriptions-list');
-    const items = Array.from(subscriptionsList.children);
-    items.sort((a, b) => {
-        const aValue = a.querySelector(`.subscription-${sortBy} .field-content`).textContent;
-        const bValue = b.querySelector(`.subscription-${sortBy} .field-content`).textContent;
-        if (sortBy === 'amount') {
-            return parseFloat(aValue) - parseFloat(bValue);
-        }
-        return aValue.localeCompare(bValue);
-    });
-    items.forEach(item => subscriptionsList.appendChild(item));
 }
 
 async function loadServicesAndCategories() {
