@@ -321,56 +321,6 @@ def add_subscription():
         db.session.rollback()
         return jsonify({"status": "error", "message": str(e)}), 400
 
-
-@app.route('/update_subscription/<int:subscription_id>', methods=['PUT'])
-def update_subscription(subscription_id):
-    try:
-        data = request.json
-        subscription = Subscription.query.get(subscription_id)
-        if not subscription:
-            return jsonify({"status": "error", "message": "Подписка не найдена"}), 404
-
-        service = Service.query.filter_by(name=data['service_name']).first()
-        if not service:
-            service = Service(name=data['service_name'], category_id=data['category_id'], is_custom=True)
-            db.session.add(service)
-            db.session.commit()
-
-        subscription.service_name = service.name
-        subscription.category_id = service.category_id
-        new_start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
-
-        # Если дата начала изменилась, обновляем start_date и last_payment_date
-        if new_start_date != subscription.start_date:
-            subscription.start_date = new_start_date
-            subscription.last_payment_date = None  # Сбрасываем last_payment_date
-            subscription.total_spent = 0  # Сбрасываем total_spent
-
-            # Удаляем все предыдущие платежи
-            Payment.query.filter_by(subscription_id=subscription.id).delete()
-
-            # Создаем новый первый платеж
-            payment = Payment(
-                subscription_id=subscription.id,
-                payment_date=new_start_date,
-                amount=float(data['amount'])
-            )
-            db.session.add(payment)
-            subscription.last_payment_date = new_start_date
-            subscription.total_spent = float(data['amount'])
-
-        subscription.amount = float(data['amount'])
-        subscription.currency = data['currency']
-        subscription.discount = data.get('discount')
-        subscription.bank = data.get('bank')
-        subscription.card_last_4 = data.get('card_last_4')
-
-        db.session.commit()
-        return jsonify({"status": "success", "id": subscription.id})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 400
-
 @app.route('/delete_subscription/<int:subscription_id>', methods=['DELETE'])
 def delete_subscription(subscription_id):
     subscription = Subscription.query.get(subscription_id)
