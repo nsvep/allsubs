@@ -10,7 +10,7 @@ from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/vsepodpiski'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/allsubs'
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 

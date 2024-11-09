@@ -10,11 +10,9 @@ let isSaving = false;
 // Кэширование DOM-элементов
 const elements = {
     subscriptions: document.getElementById('subscriptions'),
-    subscriptionModal: document.getElementById('subscriptionModal'),
     serviceSelect: document.getElementById('serviceSelect'),
     customService: document.getElementById('customService'),
     categorySelect: document.getElementById('categorySelect'),
-    modalTitle: document.getElementById('modalTitle'),
     nextPaymentDate: document.getElementById('nextPaymentDate'),
     amount: document.getElementById('amount'),
     currency: document.getElementById('currency'),
@@ -80,7 +78,6 @@ async function init() {
                 elements.prevSlide.addEventListener('click', prevSlide);
                 elements.nextSlide.addEventListener('click', nextSlide);
                 elements.skipSlide.addEventListener('click', skipSlide);
-                document.querySelector('.close').addEventListener('click', closeModal);
                 debugLog('Инициализация приложения завершена успешно');
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
@@ -94,6 +91,16 @@ async function init() {
         debugLog(`Ошибка при инициализации: ${error.message}`);
         console.error('Initialization error:', error);
     }
+}
+
+function initFormNavigation() {
+    const prevSlideBtn = document.getElementById('prevSlide');
+    const nextSlideBtn = document.getElementById('nextSlide');
+    const skipSlideBtn = document.getElementById('skipSlide');
+
+    prevSlideBtn.addEventListener('click', prevSlide);
+    nextSlideBtn.addEventListener('click', nextSlide);
+    skipSlideBtn.addEventListener('click', skipSlide);
 }
 
 // Получение списка сервисов
@@ -383,19 +390,17 @@ async function saveSubscription(subscriptionId = null) {
 
         if (response.ok) {
             debugLog('Подписка успешно сохранена');
-            closeModal();
+            toggleAddSubscriptionForm(false);
             await updateSubscriptionsList();
             tg.showPopup({message: subscriptionId ? 'Подписка обновлена' : 'Подписка добавлена'});
         } else {
-            debugLog(`Ошибка при сохранении подписки: ${result.message}`);
-            throw new Error(result.message || 'Failed to save subscription');
+            throw new Error(result.error || 'Неизвестная ошибка при сохранении подписки');
         }
     } catch (error) {
-        debugLog(`Ошибка при сохранении подписки: ${error.message}`);
         console.error('Error saving subscription:', error);
-        tg.showPopup({message: 'Ошибка при сохранении подписки: ' + error.message});
+        tg.showPopup({message: `Ошибка при сохранении подписки: ${error.message}`});
     } finally {
-        isSaving = false; // Сбрасываем флаг сохранения
+        isSaving = false;
     }
 }
 
@@ -434,32 +439,22 @@ async function updateSubscriptionsList() {
 }
 
 // Показать модальное окно
-function showModal(title) {
-    console.log('showModal called with title:', title);
-    debugLog(`Вызвана функция showModal с заголовком: ${title}`);
+function toggleAddSubscriptionForm(show) {
+    const addSubscriptionForm = document.getElementById('add-subscription-form');
+    const subscriptionsList = document.getElementById('subscriptions');
 
-    console.log('subscriptionModal element:', elements.subscriptionModal);
-    debugLog(`Элемент subscriptionModal: ${elements.subscriptionModal ? 'найден' : 'не найден'}`);
-
-    elements.modalTitle.textContent = title;
-    elements.subscriptionModal.style.display = 'block';
-
-    console.log('Modal display style set to block');
-    debugLog('Стиль отображения модального окна установлен в block');
-
-    toggleNavbar(false);
-    debugLog('Вызвана функция toggleNavbar(false)');
-
-    tg.MainButton.setText('Сохранить');
-    tg.MainButton.show();
-    debugLog('Показана главная кнопка Telegram с текстом "Сохранить"');
-}
-// Закрыть модальное окно
-function closeModal() {
-    elements.subscriptionModal.style.display = 'none';
-    toggleNavbar(true);
-    tg.MainButton.hide();
-    updateProgressBar(1); // Сброс прогресса
+    if (show) {
+        addSubscriptionForm.style.display = 'block';
+        subscriptionsList.style.display = 'none';
+        resetForm();
+        currentSlide = 1;
+        showSlide(currentSlide);
+        toggleNavbar(false);
+    } else {
+        addSubscriptionForm.style.display = 'none';
+        subscriptionsList.style.display = 'block';
+        toggleNavbar(true);
+    }
 }
 
 // Сброс формы
@@ -478,34 +473,35 @@ function resetForm() {
 
 // Показать слайд
 function showSlide(slideNumber) {
-    const slides = document.querySelectorAll('.slide');
+    const slides = document.querySelectorAll('.subscription-slide');
     slides.forEach((slide, index) => {
         slide.style.display = index + 1 === slideNumber ? 'block' : 'none';
     });
-    updateNavigationButtons(slideNumber);
-    updateProgressBar(slideNumber);
 }
 
 // Обновление кнопок навигации
-function updateNavigationButtons(slideNumber) {
-    elements.prevSlide.style.display = slideNumber > 1 ? 'inline-block' : 'none';
-    elements.nextSlide.style.display = slideNumber < 3 ? 'inline-block' : 'none';
-    elements.skipSlide.style.display = slideNumber === 3 ? 'inline-block' : 'none';
+function updateNavigationButtons() {
+    const prevSlideBtn = document.getElementById('prevSlide');
+    const nextSlideBtn = document.getElementById('nextSlide');
+    const skipSlideBtn = document.getElementById('skipSlide');
 
-    // Показываем кнопку Telegram только на последнем слайде
-    if (slideNumber === 3) {
-        tg.MainButton.setText('Добавить');
-        tg.MainButton.show();
+    prevSlideBtn.style.display = currentSlide > 1 ? 'inline-block' : 'none';
+
+    if (currentSlide === 3) {
+        nextSlideBtn.textContent = 'Сохранить';
+        skipSlideBtn.style.display = 'inline-block';
     } else {
-        tg.MainButton.hide();
+        nextSlideBtn.textContent = 'Далее';
+        skipSlideBtn.style.display = 'none';
     }
 }
 
 // Предыдущий слайд
 function prevSlide() {
     if (currentSlide > 1) {
-        currentSlide--;
-        showSlide(currentSlide);
+        showSlide(--currentSlide);
+        updateNavigationButtons();
+        updateProgressBar();
     }
 }
 
@@ -513,8 +509,9 @@ function prevSlide() {
 function nextSlide() {
     if (validateSlide(currentSlide)) {
         if (currentSlide < 3) {
-            currentSlide++;
-            showSlide(currentSlide);
+            showSlide(++currentSlide);
+            updateNavigationButtons();
+            updateProgressBar();
         } else {
             saveSubscription();
         }
@@ -550,35 +547,36 @@ function validateSlide(slideNumber) {
     switch (slideNumber) {
         case 1:
             if (!isValidSelect(elements.serviceSelect.value)) {
-                tg.showPopup({ message: 'Пожалуйста, выберите сервис' });
-                return false;
-            }
-            if (elements.serviceSelect.value === 'custom' && !isValidString(elements.customService.value, 2, 50)) {
-                tg.showPopup({ message: 'Название сервиса должно содержать от 2 до 50 символов' });
+                if (elements.serviceSelect.value === 'custom' && !isValidString(elements.customService.value, 2, 50)) {
+                    tg.showPopup({ message: 'Название сервиса должно содержать от 2 до 50 символов' });
+                    return false;
+                }
+                tg.showPopup({ message: 'Пожалуйста, выберите сервис или введите название кастомного сервиса' });
                 return false;
             }
             if (elements.serviceSelect.value === 'custom' && !isValidSelect(elements.categorySelect.value)) {
                 tg.showPopup({ message: 'Пожалуйста, выберите категорию для кастомного сервиса' });
                 return false;
             }
-            break;
+            return true;
 
         case 2:
             if (!isValidDate(elements.nextPaymentDate.value)) {
-                tg.showPopup({ message: 'Дата следующего платежа не может быть в прошлом' });
+                tg.showPopup({ message: 'Пожалуйста, укажите корректную дату следующего платежа' });
                 return false;
             }
             if (!isValidAmount(elements.amount.value)) {
-                tg.showPopup({ message: 'Пожалуйста, введите корректную сумму' });
+                tg.showPopup({ message: 'Пожалуйста, укажите корректную сумму платежа' });
                 return false;
             }
             if (!isValidSelect(elements.currency.value)) {
                 tg.showPopup({ message: 'Пожалуйста, выберите валюту' });
                 return false;
             }
-            break;
+            return true;
 
         case 3:
+            // Все поля на третьем слайде необязательны, но если они заполнены, то должны быть валидными
             if (elements.bank.value && !isValidString(elements.bank.value, 2, 50)) {
                 tg.showPopup({ message: 'Название банка должно содержать от 2 до 50 символов' });
                 return false;
@@ -587,19 +585,25 @@ function validateSlide(slideNumber) {
                 tg.showPopup({ message: 'Последние 4 цифры карты должны содержать 4 цифры' });
                 return false;
             }
-            break;
+            return true;
 
         default:
             console.error('Неизвестный номер слайда:', slideNumber);
             return false;
     }
-
-    return true;
 }
 
 // Пропустить слайд
 function skipSlide() {
-    saveSubscription();
+    if (currentSlide === 3) {
+        // Очистим поля банка и номера карты
+        document.getElementById('bank').value = '';
+        document.getElementById('cardLast4').value = '';
+        document.getElementById('sendNotifications').checked = false;
+
+        // Сохраняем подписку
+        saveSubscription();
+    }
 }
 
 // Инициализация нижней навигации
@@ -612,10 +616,7 @@ function initNavbar() {
         'navSubscriptions': fetchSubscriptions,
         'navAddSubscription': () => {
             debugLog('Нажата кнопка добавления подписки');
-            showModal('Добавить подписку');
-            resetForm();
-            currentSlide = 1;
-            showSlide(currentSlide);
+            toggleAddSubscriptionForm(true);
         },
         'navCalendar': () => {
             debugLog('Нажата кнопка календаря');
@@ -840,9 +841,9 @@ async function loadServicesAndCategories() {
     }
 }
 
-function updateProgressBar(slideNumber) {
+function updateProgressBar() {
     const progressBar = document.getElementById('subscriptionProgress');
-    const progress = (slideNumber / 3) * 100;
+    const progress = (currentSlide / 3) * 100;
     progressBar.style.width = `${progress}%`;
 }
 

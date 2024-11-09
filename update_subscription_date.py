@@ -17,7 +17,7 @@ def update_subscription_start_date(subscription_id, new_start_date):
 
 
 if __name__ == "__main__":
-    subscription_id = 2  # ID подписки, которую мы хотим изменить
+    subscription_id = 1  # ID подписки, которую мы хотим изменить
 
     # Запрашиваем у пользователя новую дату
     date_input = input("Enter new start date (YYYY-MM-DD): ")
