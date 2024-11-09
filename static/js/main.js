@@ -156,6 +156,7 @@ async function fetchSubscriptions() {
 }
 
 // Отображение списка подписок
+// Отображение списка подписок
 function displaySubscriptions(subscriptions) {
     debugLog('Начало отображения подписок');
     elements.subscriptions.innerHTML = '';
@@ -215,12 +216,18 @@ function displaySubscriptions(subscriptions) {
                 subscriptionHTML += createField('subscription-card', 'far fa-credit-card', `**** ${sub.card_last_4}`);
             }
 
-            // Добавляем меню подписки
+            // Добавляем меню подписки с иконками
             subscriptionHTML += `
                 <div class="subscription-menu" id="menu-${sub.id}" style="display: none;">
-                    <button onclick="editSubscription(${sub.id})">Редактировать</button>
-                    <button onclick="archiveSubscription(${sub.id})">Архивировать</button>
-                    <button onclick="deleteSubscription(${sub.id})">Удалить</button>
+                    <button onclick="editSubscription(${sub.id})">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                    <button onclick="archiveSubscription(${sub.id})">
+                        <i class="fas fa-archive"></i> Архивировать
+                    </button>
+                    <button onclick="deleteSubscription(${sub.id})">
+                        <i class="fas fa-trash-alt"></i> Удалить
+                    </button>
                 </div>
             `;
 
@@ -258,35 +265,17 @@ function displaySubscriptions(subscriptions) {
         };
 
         // Добавляем кнопки сортировки
-        const sortButtonsContainer = document.createElement('div');
-        sortButtonsContainer.className = 'sort-buttons-container';
-        sortButtonsContainer.innerHTML = `
-            <span class="sort-label">Сортировать по:</span>
-            <button class="sort-button" data-sort="next_payment">
-                <i class="fas fa-calendar-alt"></i> Дате платежа
-            </button>
-            <button class="sort-button" data-sort="amount">
-                <i class="fas fa-money-bill-wave"></i> Сумме
-            </button>
+        const sortButtons = document.createElement('div');
+        sortButtons.className = 'sort-buttons';
+        sortButtons.innerHTML = `
+            <button class="sort-button" data-sort="next_payment">По дате</button>
+            <button class="sort-button" data-sort="amount">По сумме</button>
         `;
-
-        // Добавляем обработчики событий для кнопок
-        sortButtonsContainer.querySelectorAll('.sort-button').forEach(button => {
-            button.addEventListener('click', () => {
-                sortSubscriptions(button.dataset.sort);
-            });
+        sortButtons.querySelectorAll('.sort-button').forEach(btn => {
+            btn.addEventListener('click', () => sortSubscriptions(btn.dataset.sort));
         });
-
-        elements.subscriptions.insertBefore(sortButtonsContainer, subscriptionsList);
-
-        // Делаем функцию сортировки доступной глобально
-        window.sortSubscriptions = sortSubscriptions;
-
-        // Сортируем по дате платежа по умолчанию
-        sortSubscriptions('next_payment');
+        elements.subscriptions.insertBefore(sortButtons, subscriptionsList);
     }
-
-    debugLog('Завершено отображение подписок');
 }
 
 function showSubscriptionMenu(subscriptionId) {
@@ -301,7 +290,23 @@ function showSubscriptionMenu(subscriptionId) {
     });
 
     // Переключаем видимость текущего меню
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+
+        // Проверяем положение меню относительно экрана
+        const rect = menu.getBoundingClientRect();
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
+        if (rect.bottom > viewportHeight) {
+            menu.style.bottom = '100%';
+            menu.style.top = 'auto';
+        } else {
+            menu.style.top = '100%';
+            menu.style.bottom = 'auto';
+        }
+    }
 
     // Добавляем обработчик для закрытия меню при клике вне его
     document.addEventListener('click', function closeMenu(e) {

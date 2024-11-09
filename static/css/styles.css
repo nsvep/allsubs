@@ -68,6 +68,7 @@ h1 {
     margin-bottom: 16px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: box-shadow 0.3s ease;
+    position: relative;
 }
 
 .subscription-item:hover {
@@ -426,13 +427,15 @@ h1 {
 }
 
 .subscription-menu {
-    display: none;
     position: absolute;
-    right: 16px;
+    right: 0;
     background-color: var(--tg-theme-bg-color);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 10;
+    min-width: 180px;
+    border: 1px solid var(--tg-theme-hint-color);
+    overflow: hidden;
 }
 
 .subscription-menu button {
@@ -445,10 +448,22 @@ h1 {
     color: var(--tg-theme-text-color);
     cursor: pointer;
     transition: background-color 0.3s ease;
+    text-align: left;
 }
 
 .subscription-menu button:hover {
     background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.subscription-menu button i {
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Добавим разделитель между кнопками */
+.subscription-menu button:not(:last-child) {
+    border-bottom: 1px solid var(--tg-theme-hint-color);
 }
 
 /* Пустое состояние */
@@ -578,6 +593,14 @@ h1 {
 
     .card {
         box-shadow: 0 2px 4px rgba(255,255,255,0.1);
+    }
+    .subscription-menu {
+        background-color: var(--tg-theme-secondary-bg-color);
+        border-color: var(--tg-theme-text-color);
+    }
+
+    .subscription-menu button:hover {
+        background-color: var(--tg-theme-bg-color);
     }
 }
 
