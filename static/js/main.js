@@ -26,6 +26,10 @@ const elements = {
     categoryGroup: document.getElementById('categoryGroup')
 };
 
+function closeSubscriptionForm() {
+    toggleAddSubscriptionForm(false);
+}
+
 // Инициализация приложения
 async function init() {
     debugLog('Инициализация приложения начата');
@@ -78,6 +82,9 @@ async function init() {
                 elements.prevSlide.addEventListener('click', prevSlide);
                 elements.nextSlide.addEventListener('click', nextSlide);
                 elements.skipSlide.addEventListener('click', skipSlide);
+                document.querySelectorAll('.close-button').forEach(button => {
+                    button.addEventListener('click', closeSubscriptionForm);
+                });
                 debugLog('Инициализация приложения завершена успешно');
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
@@ -449,10 +456,12 @@ function toggleAddSubscriptionForm(show) {
         resetForm();
         currentSlide = 1;
         showSlide(currentSlide);
+        updateProgressBar();
         toggleNavbar(false);
     } else {
         addSubscriptionForm.style.display = 'none';
         subscriptionsList.style.display = 'block';
+        resetForm();
         toggleNavbar(true);
     }
 }

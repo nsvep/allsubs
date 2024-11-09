@@ -541,6 +541,7 @@ h1 {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
 }
 
 .subscription-form-container {
@@ -548,7 +549,7 @@ h1 {
 }
 
 .subscription-slide {
-    transition: opacity 0.3s ease-in-out;
+    padding-top: 20px;
 }
 
 .form-navigation {
@@ -571,6 +572,31 @@ h1 {
     cursor: not-allowed;
 }
 
+/* кнопка закрытия */
+.close-button {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--tg-theme-hint-color);
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+}
+
+.close-button:hover {
+    color: var(--tg-theme-text-color);
+}
+
+.slide-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.slide-header h3 {
+    margin: 0;
+}
 /* Медиа-запросы */
 @media (max-width: 600px) {
 
