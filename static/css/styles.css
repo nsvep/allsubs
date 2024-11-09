@@ -548,6 +548,15 @@ h1 {
     margin-bottom: 20px;
 }
 
+.subscription-form {
+    transform: translateY(100%);
+    transition: transform 0.5s ease-out;
+}
+
+.subscription-form.active {
+    transform: translateY(0);
+}
+
 .subscription-slide {
     padding-top: 20px;
 }

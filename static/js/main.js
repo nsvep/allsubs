@@ -458,11 +458,28 @@ function toggleAddSubscriptionForm(show) {
         showSlide(currentSlide);
         updateProgressBar();
         toggleNavbar(false);
+
+        // Анимация открытия формы
+        anime({
+            targets: addSubscriptionForm,
+            translateY: ['100%', '0%'],
+            duration: 500,
+            easing: 'easeOutExpo'
+        });
     } else {
-        addSubscriptionForm.style.display = 'none';
-        subscriptionsList.style.display = 'block';
-        resetForm();
-        toggleNavbar(true);
+        // Анимация закрытия формы
+        anime({
+            targets: addSubscriptionForm,
+            translateY: ['0%', '100%'],
+            duration: 500,
+            easing: 'easeInExpo',
+            complete: function() {
+                addSubscriptionForm.style.display = 'none';
+                subscriptionsList.style.display = 'block';
+                resetForm();
+                toggleNavbar(true);
+            }
+        });
     }
 }
 
