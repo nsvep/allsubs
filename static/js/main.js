@@ -448,8 +448,9 @@ function showModal(title) {
 // Закрыть модальное окно
 function closeModal() {
     elements.subscriptionModal.style.display = 'none';
-    toggleNavbar(true); // Показываем navbar
+    toggleNavbar(true);
     tg.MainButton.hide();
+    updateProgressBar(1); // Сброс прогресса
 }
 
 // Сброс формы
@@ -473,6 +474,7 @@ function showSlide(slideNumber) {
         slide.style.display = index + 1 === slideNumber ? 'block' : 'none';
     });
     updateNavigationButtons(slideNumber);
+    updateProgressBar(slideNumber);
 }
 
 // Обновление кнопок навигации
@@ -817,6 +819,11 @@ async function loadServicesAndCategories() {
     }
 }
 
+function updateProgressBar(slideNumber) {
+    const progressBar = document.getElementById('subscriptionProgress');
+    const progress = (slideNumber / 3) * 100;
+    progressBar.style.width = `${progress}%`;
+}
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     init().catch(error => console.error('Error in init:', error));
