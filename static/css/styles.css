@@ -588,19 +588,136 @@ h1 {
         --tg-theme-hint-color: #a0a0a0;
         --tg-theme-link-color: #4a9eff;
         --tg-theme-button-color: #3a7bd5;
+        --tg-theme-button-text-color: #ffffff;
         --tg-theme-secondary-bg-color: #2c2c2c;
     }
 
+    body {
+        background-color: var(--tg-theme-bg-color);
+        color: var(--tg-theme-text-color);
+    }
+
     .card {
+        background-color: var(--tg-theme-secondary-bg-color);
         box-shadow: 0 2px 4px rgba(255,255,255,0.1);
     }
+
+    .subscription-item {
+        background-color: var(--tg-theme-secondary-bg-color);
+        border: 1px solid #444;
+    }
+
+    .subscription-header h3 {
+        color: var(--tg-theme-text-color);
+    }
+
+    .subscription-item p {
+        color: var(--tg-theme-hint-color);
+    }
+
+    .subscription-amount {
+        color: #4CAF50;
+    }
+
+    .subscription-amount.high {
+        color: #FF5722;
+    }
+
+    .btn-more {
+        color: var(--tg-theme-hint-color);
+    }
+
     .subscription-menu {
         background-color: var(--tg-theme-secondary-bg-color);
-        border-color: var(--tg-theme-text-color);
+        border-color: #444;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .subscription-menu button {
+        color: var(--tg-theme-text-color);
+        border-bottom-color: #444;
     }
 
     .subscription-menu button:hover {
+        background-color: #3a3a3a;
+    }
+
+    .sort-buttons-container {
+        background-color: var(--tg-theme-secondary-bg-color);
+    }
+
+    .sort-button {
         background-color: var(--tg-theme-bg-color);
+        color: var(--tg-theme-text-color);
+        border-color: #444;
+    }
+
+    .sort-button:hover {
+        background-color: #3a3a3a;
+    }
+
+    .sort-button.active {
+        background-color: var(--tg-theme-button-color);
+        color: var(--tg-theme-button-text-color);
+    }
+
+    .edit-form {
+        background-color: var(--tg-theme-secondary-bg-color);
+    }
+
+    .edit-form select,
+    .edit-form input {
+        background-color: var(--tg-theme-bg-color);
+        color: var(--tg-theme-text-color);
+        border-color: #444;
+    }
+
+    .btn-save {
+        background-color: var(--tg-theme-button-color);
+        color: var(--tg-theme-button-text-color);
+    }
+
+    .bottom-navbar {
+        background-color: var(--tg-theme-secondary-bg-color);
+        border-top: 1px solid #444;
+    }
+
+    .nav-item {
+        color: var(--tg-theme-hint-color);
+    }
+
+    .nav-item.active {
+        color: var(--tg-theme-text-color);
+    }
+
+    .plus-icon {
+        background-color: var(--tg-theme-button-color);
+        color: var(--tg-theme-button-text-color);
+    }
+
+    .modal-content {
+        background-color: var(--tg-theme-secondary-bg-color);
+        border: 1px solid #444;
+    }
+
+    .close {
+        color: var(--tg-theme-hint-color);
+    }
+
+    .illustration {
+        background-color: var(--tg-theme-secondary-bg-color);
+    }
+
+    .illustration i {
+        color: var(--tg-theme-button-color);
+    }
+
+    .illustration h2 {
+        color: var(--tg-theme-text-color);
+    }
+
+    .illustration p {
+        color: var(--tg-theme-hint-color);
     }
 }
 
