@@ -98,19 +98,25 @@
 
     <!-- Нижний navbar -->
     <nav class="bottom-navbar">
-    <a href="#" id="navSubscriptions" class="nav-item">
-        <i class="fas fa-list"></i>
-        <span>Подписки</span>
-    </a>
-    <a href="#" id="navAddSubscription" class="nav-item nav-item-center">
-        <div class="plus-icon">
-            <i class="fas fa-plus"></i>
-        </div>
-    </a>
-    <a href="#" id="navCalendar" class="nav-item">
-        <i class="fas fa-calendar-alt"></i>
-        <span>Календарь</span>
-    </a>
+        <div class="nav-indicator"></div>
+        <a href="#" id="navSubscriptions" class="nav-item active">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+            </svg>
+            <span>Подписки</span>
+        </a>
+        <a href="#" id="navAddSubscription" class="nav-item">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+            <span>Добавить</span>
+        </a>
+        <a href="#" id="navCalendar" class="nav-item">
+            <svg class="icon" viewBox="0 0 24 24">
+                <path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/>
+            </svg>
+            <span>Календарь</span>
+        </a>
     </nav>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

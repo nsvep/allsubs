@@ -318,7 +318,8 @@ h1 {
     justify-content: space-around;
     align-items: center;
     padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
 }
 
 .nav-item {
@@ -327,13 +328,46 @@ h1 {
     align-items: center;
     text-decoration: none;
     color: var(--tg-theme-hint-color);
-    font-size: 12px;
     transition: color 0.3s ease;
+    position: relative;
+    flex: 1;
+    padding: 10px 0;
+}
+
+.nav-item .icon {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 5px;
+    fill: currentColor;
+    transition: transform 0.3s ease;
 }
 
 .nav-item i {
-    font-size: 20px;
-    margin-bottom: 4px;
+    font-size: 24px;
+    margin-bottom: 5px;
+}
+
+.nav-item span {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.nav-item:hover .icon,
+.nav-item.active .icon {
+    transform: translateY(-2px);
+}
+
+.nav-item:hover span,
+.nav-item.active span {
+    transform: translateY(2px);
+}
+
+.nav-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 3px;
+    background-color: var(--tg-theme-button-color);
+    transition: 0.3s ease;
 }
 
 .nav-item.active {
@@ -355,6 +389,21 @@ h1 {
     color: var(--tg-theme-button-text-color);
     font-size: 24px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.nav-item:hover,
+.nav-item.active {
+    color: var(--tg-theme-button-color);
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+    40% {transform: translateY(-10px);}
+    60% {transform: translateY(-5px);}
+}
+
+.nav-item:active .icon {
+    animation: bounce 0.5s;
 }
 
 /* Слайды */

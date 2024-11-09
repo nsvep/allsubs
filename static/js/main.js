@@ -602,6 +602,8 @@ function skipSlide() {
 function initNavbar() {
     debugLog('Инициализация навигационной панели');
 
+    const navItems = document.querySelectorAll('.nav-item');
+    const navIndicator = document.querySelector('.nav-indicator');
     const navActions = {
         'navSubscriptions': fetchSubscriptions,
         'navAddSubscription': () => {
@@ -613,26 +615,36 @@ function initNavbar() {
         },
         'navCalendar': () => {
             debugLog('Нажата кнопка календаря');
+            // Здесь можно добавить логику для отображения календаря
         }
     };
 
-    Object.entries(navActions).forEach(([id, action]) => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('click', action);
-            debugLog(`Установлен обработчик события для элемента с id: ${id}`);
-        } else {
-            debugLog(`Элемент с id ${id} не найден`);
-        }
+    function setIndicatorPosition(item) {
+        const itemRect = item.getBoundingClientRect();
+        const navbarRect = item.closest('.bottom-navbar').getBoundingClientRect();
+
+        navIndicator.style.width = `${itemRect.width}px`;
+        navIndicator.style.left = `${itemRect.left - navbarRect.left}px`;
+    }
+
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            navItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            setIndicatorPosition(item);
+            const action = navActions[item.id];
+            if (action) {
+                action();
+            }
+        });
     });
 
-    // Обработчик для кнопки Telegram
-    tg.MainButton.onClick(() => {
-        debugLog('Нажата главная кнопка Telegram');
-        if (!isSaving) {
-            saveSubscription();
-        }
-    });
+    // Устанавливаем начальную позицию индикатора
+    const activeItem = document.querySelector('.nav-item.active');
+    if (activeItem) {
+        setIndicatorPosition(activeItem);
+    }
 
     debugLog('Инициализация навигационной панели завершена');
 }
