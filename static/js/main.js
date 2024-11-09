@@ -457,6 +457,7 @@ function toggleAddSubscriptionForm(show) {
         currentSlide = 1;
         showSlide(currentSlide);
         updateProgressBar();
+        updateNavigationButtons();
         toggleNavbar(false);
 
         // Анимация открытия формы
@@ -495,6 +496,10 @@ function resetForm() {
     elements.cardLast4.value = '';
     elements.sendNotifications.checked = false;
     onServiceChange();
+    currentSlide = 1;
+    showSlide(currentSlide);
+    updateNavigationButtons();
+    updateProgressBar();
 }
 
 // Показать слайд
