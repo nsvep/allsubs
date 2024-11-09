@@ -156,23 +156,27 @@ async function fetchSubscriptions() {
 }
 
 // Отображение списка подписок
-// Отображение списка подписок
 function displaySubscriptions(subscriptions) {
     debugLog('Начало отображения подписок');
     elements.subscriptions.innerHTML = '';
 
-    if (subscriptions.length === 0) {
+        if (subscriptions.length === 0) {
         const noSubscriptionsElement = document.createElement('div');
+        noSubscriptionsElement.id = 'no-subscriptions';
         noSubscriptionsElement.className = 'no-subscriptions';
         noSubscriptionsElement.innerHTML = `
-            <div class="illustration">
-                <i class="fas fa-list-alt"></i>
-                <h2>Нет активных подписок</h2>
-                <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
+            <div class="animation-container">
+                <i class="fas fa-music subscription-icon"></i>
+                <i class="fas fa-film subscription-icon"></i>
+                <i class="fas fa-cloud subscription-icon"></i>
+                <i class="fas fa-newspaper subscription-icon"></i>
             </div>
+            <h2>Нет активных подписок</h2>
+            <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
         `;
         elements.subscriptions.appendChild(noSubscriptionsElement);
-        debugLog('Отображено сообщение об отсутствии подписок');
+        animateNoSubscriptions();
+        debugLog('Отображено сообщение об отсутствии подписок с анимацией');
     } else {
         const subscriptionsList = document.createElement('div');
         subscriptionsList.className = 'subscriptions-list';
@@ -840,6 +844,20 @@ function updateProgressBar(slideNumber) {
     const progressBar = document.getElementById('subscriptionProgress');
     const progress = (slideNumber / 3) * 100;
     progressBar.style.width = `${progress}%`;
+}
+
+function animateNoSubscriptions() {
+    anime({
+        targets: '.subscription-icon',
+        translateY: [-50, 0],
+        opacity: [0, 1],
+        scale: [0.5, 1],
+        delay: anime.stagger(200),
+        duration: 1000,
+        easing: 'spring(1, 80, 10, 0)',
+        loop: true,
+        direction: 'alternate'
+    });
 }
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {

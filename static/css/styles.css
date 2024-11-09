@@ -558,6 +558,30 @@ h1 {
     line-height: 1.6;
 }
 
+.no-subscriptions {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    margin: 20px;
+}
+
+.animation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    margin-bottom: 20px;
+}
+
+.subscription-icon {
+    font-size: 30px;
+    margin: 0 15px;
+    color: var(--tg-theme-button-color);
+}
+
 /* Медиа-запросы */
 @media (max-width: 600px) {
     .modal-content {
