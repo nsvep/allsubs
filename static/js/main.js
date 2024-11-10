@@ -211,128 +211,129 @@ function displaySubscriptions(subscriptions) {
     debugLog('Начало отображения подписок');
     elements.subscriptions.innerHTML = '';
 
-        if (subscriptions.length === 0) {
-        const noSubscriptionsElement = document.createElement('div');
-        noSubscriptionsElement.id = 'no-subscriptions';
-        noSubscriptionsElement.className = 'no-subscriptions';
-        noSubscriptionsElement.innerHTML = `
-            <div class="animation-container">
-                <i class="fas fa-music subscription-icon"></i>
-                <i class="fas fa-film subscription-icon"></i>
-                <i class="fas fa-cloud subscription-icon"></i>
-                <i class="fas fa-newspaper subscription-icon"></i>
-            </div>
-            <h2>Нет активных подписок</h2>
-            <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
-        `;
-        elements.subscriptions.appendChild(noSubscriptionsElement);
-        animateNoSubscriptions();
-        debugLog('Отображено сообщение об отсутствии подписок с анимацией');
+    if (subscriptions.length === 0) {
+        displayNoSubscriptions();
     } else {
-        const subscriptionsList = document.createElement('div');
-        subscriptionsList.className = 'subscriptions-list';
-
-        subscriptions.forEach(sub => {
-            const subElement = document.createElement('div');
-            subElement.className = 'subscription-item';
-            subElement.setAttribute('data-id', sub.id);
-
-            // Форматируем дату следующего платежа
-            const nextPaymentDate = new Date(sub.start_date);
-            const formattedDate = nextPaymentDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-
-            // Определяем класс для суммы (для возможной цветовой индикации)
-            const amountClass = sub.amount > 1000 ? 'subscription-amount high' : 'subscription-amount';
-
-            // Создаем элементы для каждого поля подписки
-            const createField = (className, icon, content) => `
-                <p class="${className}">
-                    <i class="${icon}"></i>
-                    <span class="field-content">${content}</span>
-                </p>
-            `;
-
-            // Создаем базовую структуру подписки
-            let subscriptionHTML = `
-                <div class="subscription-header">
-                    <h3 class="subscription-service_name">${sub.service_name}</h3>
-                    <button class="btn-more" onclick="showSubscriptionMenu(${sub.id})">⋮</button>
-                </div>
-                ${createField('subscription-category_name', 'fas fa-tag', sub.category_name)}
-                ${createField('subscription-next-payment', 'far fa-calendar-alt', `Следующий платеж: ${formattedDate}`)}
-                ${createField(amountClass, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
-            `;
-
-            // Добавляем информацию о банке и карте, только если они указаны
-            if (sub.bank) {
-                subscriptionHTML += createField('subscription-bank', 'fas fa-university', sub.bank);
-            }
-            if (sub.card_last_4) {
-                subscriptionHTML += createField('subscription-card', 'far fa-credit-card', `**** ${sub.card_last_4}`);
-            }
-
-            // Добавляем меню подписки с иконками
-            subscriptionHTML += `
-                <div class="subscription-menu" id="menu-${sub.id}" style="display: none;">
-                    <button onclick="editSubscription(${sub.id})">
-                        <i class="fas fa-edit"></i> Редактировать
-                    </button>
-                    <button onclick="archiveSubscription(${sub.id})">
-                        <i class="fas fa-archive"></i> Архивировать
-                    </button>
-                    <button onclick="deleteSubscription(${sub.id})">
-                        <i class="fas fa-trash-alt"></i> Удалить
-                    </button>
-                </div>
-            `;
-
-            subElement.innerHTML = subscriptionHTML;
-            subscriptionsList.appendChild(subElement);
-        });
-
-        elements.subscriptions.appendChild(subscriptionsList);
-        debugLog(`Отображено ${subscriptions.length} подписок`);
-
-        // Добавляем сортировку подписок
-        const sortSubscriptions = (sortBy) => {
-            debugLog(`Сортировка подписок по ${sortBy}`);
-            const items = Array.from(subscriptionsList.children);
-            items.sort((a, b) => {
-                if (sortBy === 'next_payment') {
-                    const aDate = new Date(a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
-                    const bDate = new Date(b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
-                    return aDate - bDate;
-                } else if (sortBy === 'amount') {
-                    const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
-                    const bAmount = parseFloat(b.querySelector('.subscription-amount .field-content').textContent);
-                    return aAmount - bAmount;
-                }
-            });
-            items.forEach(item => subscriptionsList.appendChild(item));
-
-            // Обновляем активную кнопку сортировки
-            document.querySelectorAll('.sort-button').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.dataset.sort === sortBy) {
-                    btn.classList.add('active');
-                }
-            });
-        };
-
-        // Добавляем кнопки сортировки
-        const sortButtons = document.createElement('div');
-        sortButtons.className = 'sort-buttons';
-        sortButtons.innerHTML = `
-            <button class="sort-button" data-sort="next_payment">По дате</button>
-            <button class="sort-button" data-sort="amount">По сумме</button>
-        `;
-        sortButtons.querySelectorAll('.sort-button').forEach(btn => {
-            btn.addEventListener('click', () => sortSubscriptions(btn.dataset.sort));
-        });
-        elements.subscriptions.insertBefore(sortButtons, subscriptionsList);
+        displaySubscriptionsList(subscriptions);
     }
 }
 
+function displayNoSubscriptions() {
+    const noSubscriptionsElement = createNoSubscriptionsElement();
+    elements.subscriptions.appendChild(noSubscriptionsElement);
+    animateNoSubscriptions();
+    debugLog('Отображено сообщение об отсутствии подписок с анимацией');
+}
+
+function createNoSubscriptionsElement() {
+    const noSubscriptionsElement = document.createElement('div');
+    noSubscriptionsElement.id = 'no-subscriptions';
+    noSubscriptionsElement.className = 'no-subscriptions';
+    noSubscriptionsElement.innerHTML = `
+        <div class="animation-container">
+            <i class="fas fa-music subscription-icon"></i>
+            <i class="fas fa-film subscription-icon"></i>
+            <i class="fas fa-cloud subscription-icon"></i>
+            <i class="fas fa-newspaper subscription-icon"></i>
+        </div>
+        <h2>Нет активных подписок</h2>
+        <p>Добавьте свою первую подписку, используя кнопку "+" в нижнем меню.</p>
+    `;
+    return noSubscriptionsElement;
+}
+
+function displaySubscriptionsList(subscriptions) {
+    const subscriptionsList = document.createElement('div');
+    subscriptionsList.className = 'subscriptions-list';
+
+    subscriptions.forEach(sub => {
+        const subElement = createSubscriptionElement(sub);
+        subscriptionsList.appendChild(subElement);
+    });
+
+    elements.subscriptions.appendChild(subscriptionsList);
+    addSortingFunctionality(subscriptionsList);
+}
+
+function createSubscriptionElement(sub) {
+    const subElement = document.createElement('div');
+    subElement.className = 'subscription-item';
+    subElement.setAttribute('data-id', sub.id);
+
+    const nextPaymentDate = new Date(sub.start_date);
+    const formattedDate = nextPaymentDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+    const amountClass = sub.amount > 1000 ? 'subscription-amount high' : 'subscription-amount';
+
+    subElement.innerHTML = `
+        <div class="subscription-header">
+            <h3 class="subscription-service_name">${sub.service_name}</h3>
+            <div class="subscription-actions">
+                <button class="btn-more" onclick="showSubscriptionMenu(${sub.id})">⋮</button>
+                <div id="menu-${sub.id}" class="subscription-menu" style="display: none;">
+                    <button onclick="editSubscription(${sub.id})">Редактировать</button>
+                    <button onclick="archiveSubscription(${sub.id})">Архивировать</button>
+                    <button onclick="deleteSubscription(${sub.id})">Удалить</button>
+                </div>
+            </div>
+        </div>
+        ${createField('subscription-category_name', 'fas fa-tag', sub.category_name)}
+        ${createField('subscription-next-payment', 'fas fa-calendar-alt', `Следующий платеж: ${formattedDate}`)}
+        ${createField(amountClass, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
+        ${sub.discount ? createField('subscription-discount', 'fas fa-percent', `Скидка: ${sub.discount}%`) : ''}
+        ${sub.bank ? createField('subscription-bank', 'fas fa-university', `Банк: ${sub.bank}`) : ''}
+        ${sub.card_last_4 ? createField('subscription-card', 'fas fa-credit-card', `Карта: *${sub.card_last_4}`) : ''}
+    `;
+
+    return subElement;
+}
+
+function createField(className, icon, content) {
+    return `
+        <p class="${className}">
+            <i class="${icon}"></i>
+            <span class="field-content">${content}</span>
+        </p>
+    `;
+}
+
+function addSortingFunctionality(subscriptionsList) {
+    const sortButtons = `
+        <div class="sort-buttons">
+            <button class="sort-button" data-sort="next_payment">Сортировать по дате</button>
+            <button class="sort-button" data-sort="amount">Сортировать по сумме</button>
+        </div>
+    `;
+    elements.subscriptions.insertAdjacentHTML('beforeend', sortButtons);
+
+    document.querySelectorAll('.sort-button').forEach(button => {
+        button.addEventListener('click', () => sortSubscriptions(button.dataset.sort, subscriptionsList));
+    });
+}
+
+function sortSubscriptions(sortBy, subscriptionsList) {
+    debugLog(`Сортировка подписок по ${sortBy}`);
+    const items = Array.from(subscriptionsList.children);
+    items.sort((a, b) => {
+        if (sortBy === 'next_payment') {
+            const aDate = new Date(a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
+            const bDate = new Date(b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
+            return aDate - bDate;
+        } else if (sortBy === 'amount') {
+            const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
+            const bAmount = parseFloat(b.querySelector('.subscription-amount .field-content').textContent);
+            return bAmount - aAmount;
+        }
+    });
+    items.forEach(item => subscriptionsList.appendChild(item));
+
+    updateSortButtonsState(sortBy);
+}
+
+function updateSortButtonsState(activeSortBy) {
+    document.querySelectorAll('.sort-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.sort === activeSortBy);
+    });
+}
 function showSubscriptionMenu(subscriptionId) {
     const menu = document.getElementById(`menu-${subscriptionId}`);
     const allMenus = document.querySelectorAll('.subscription-menu');
