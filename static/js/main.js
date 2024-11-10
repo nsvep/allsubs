@@ -778,8 +778,12 @@ function toggleNavbar(show) {
 }
 
 async function editSubscription(subscriptionId) {
+    debugLog(`Начало редактирования подписки с ID: ${subscriptionId}`);
     const subscriptionItem = document.querySelector(`.subscription-item[data-id="${subscriptionId}"]`);
-    if (!subscriptionItem) return;
+    if (!subscriptionItem) {
+        debugLog(`Подписка с ID ${subscriptionId} не найдена`);
+        return;
+    }
 
     // Скрываем меню подписки
     const subscriptionMenu = subscriptionItem.querySelector('.subscription-menu');
@@ -794,6 +798,8 @@ async function editSubscription(subscriptionId) {
     const currentAmount = subscriptionItem.querySelector('.subscription-amount .field-content').textContent.split(' ')[0];
     const currentCurrency = subscriptionItem.querySelector('.subscription-amount .field-content').textContent.split(' ')[1];
 
+    debugLog(`Текущие данные подписки: Сервис: ${currentServiceName}, Категория: ${currentCategoryName}, Сумма: ${currentAmount}, Валюта: ${currentCurrency}`);
+
     const editForm = document.createElement('form');
     editForm.className = 'edit-form';
     editForm.innerHTML = `
@@ -804,7 +810,7 @@ async function editSubscription(subscriptionId) {
                 ${services.map(service => `<option value="${service.name}" ${service.name === currentServiceName ? 'selected' : ''}>${service.name}</option>`).join('')}
                 <option value="custom">Другой (свой вариант)</option>
             </select>
-            <input type="text" id="edit-custom-service" style="display: none;" placeholder="Введите название сервиса">
+            <input type="text" id="edit-custom-service" style="display: none;" placeholder="Введите название сервиса" value="${currentServiceName}">
         </div>
         <div class="form-group">
             <label for="edit-category">Категория</label>
@@ -834,7 +840,16 @@ async function editSubscription(subscriptionId) {
     const editCategorySelect = editForm.querySelector('#edit-category');
     const editCustomServiceInput = editForm.querySelector('#edit-custom-service');
 
+    // Устанавливаем начальное состояние
+    if (!services.some(service => service.name === currentServiceName)) {
+        debugLog(`Установка пользовательского сервиса: ${currentServiceName}`);
+        editServiceSelect.value = 'custom';
+        editCustomServiceInput.style.display = 'block';
+        editCategorySelect.disabled = false;
+    }
+
     editServiceSelect.addEventListener('change', function() {
+        debugLog(`Изменение выбора сервиса: ${this.value}`);
         const selectedService = services.find(service => service.name === this.value);
         if (selectedService) {
             editCategorySelect.value = categories.find(category => category.id === selectedService.category_id).name;
@@ -852,16 +867,7 @@ async function editSubscription(subscriptionId) {
     subscriptionItem.appendChild(editForm);
 
     // Добавляем анимацию появления формы
-    anime({
-        targets: editForm,
-        opacity: [0, 1],
-        translateY: [-20, 0],
-        duration: 500,
-        easing: 'easeOutCubic',
-        begin: function(anim) {
-            editForm.style.display = 'block';
-        }
-    });
+    animateEditForm(editForm);
 
     editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -871,6 +877,11 @@ async function editSubscription(subscriptionId) {
             amount: parseFloat(editForm.querySelector('#edit-amount').value),
             currency: editForm.querySelector('#edit-currency').value
         };
+
+        debugLog(`Отправка обновленных данных: ${JSON.stringify(updatedData)}`);
+        console.log('Updating subscription with data:', updatedData);
+        console.log('Selected service:', editServiceSelect.value);
+        console.log('Custom service input:', editCustomServiceInput.value);
 
         try {
             const response = await fetch(`/update_subscription/${subscriptionId}`, {
@@ -882,6 +893,9 @@ async function editSubscription(subscriptionId) {
             });
 
             if (response.ok) {
+                const result = await response.json();
+                debugLog(`Ответ сервера: ${JSON.stringify(result)}`);
+                console.log('Server response:', result);
                 await updateSubscriptionsList();
                 tg.showPopup({
                     title: 'Успех',
@@ -892,6 +906,7 @@ async function editSubscription(subscriptionId) {
                 throw new Error('Failed to update subscription');
             }
         } catch (error) {
+            debugLog(`Ошибка при обновлении подписки: ${error.message}`);
             console.error('Error updating subscription:', error);
             tg.showPopup({
                 title: 'Ошибка',
@@ -909,6 +924,7 @@ async function editSubscription(subscriptionId) {
     });
 
     editForm.querySelector('.btn-cancel').addEventListener('click', () => {
+        debugLog('Отмена редактирования подписки');
         // Возвращаем видимость меню подписки и удаляем форму редактирования
         if (subscriptionMenu) {
             subscriptionMenu.style.display = '';
