@@ -770,7 +770,7 @@ async function editSubscription(subscriptionId) {
         </div>
         <div class="form-group">
             <label for="edit-category">Категория</label>
-            <select id="edit-category" ${currentServiceName !== 'custom' ? 'disabled' : ''}>
+            <select id="edit-category" disabled>
                 ${categories.map(category => `<option value="${category.name}" ${category.name === currentCategoryName ? 'selected' : ''}>${category.name}</option>`).join('')}
             </select>
         </div>
@@ -792,42 +792,64 @@ async function editSubscription(subscriptionId) {
         </div>
     `;
 
-    const serviceSelect = editForm.querySelector('#edit-service');
-    const customServiceInput = editForm.querySelector('#edit-custom-service');
-    const categorySelect = editForm.querySelector('#edit-category');
+    const editServiceSelect = editForm.querySelector('#edit-service');
+    const editCategorySelect = editForm.querySelector('#edit-category');
+    const editCustomServiceInput = editForm.querySelector('#edit-custom-service');
 
-    serviceSelect.addEventListener('change', function() {
-        if (this.value === 'custom') {
-            customServiceInput.style.display = 'block';
-            categorySelect.disabled = false;
+    editServiceSelect.addEventListener('change', function() {
+        const selectedService = services.find(service => service.name === this.value);
+        if (selectedService) {
+            editCategorySelect.value = categories.find(category => category.id === selectedService.category_id).name;
+            editCategorySelect.disabled = true;
+            editCustomServiceInput.style.display = 'none';
+        } else if (this.value === 'custom') {
+            editCategorySelect.disabled = false;
+            editCustomServiceInput.style.display = 'block';
         } else {
-            customServiceInput.style.display = 'none';
-            categorySelect.disabled = true;
-            const selectedService = services.find(s => s.name === this.value);
-            if (selectedService) {
-                categorySelect.value = selectedService.category;
-            }
+            editCategorySelect.disabled = true;
+            editCustomServiceInput.style.display = 'none';
         }
     });
 
-    editForm.addEventListener('submit', async function(e) {
+    subscriptionItem.appendChild(editForm);
+
+    // Добавляем анимацию появления формы
+    anime({
+        targets: editForm,
+        opacity: [0, 1],
+        translateY: [-20, 0],
+        duration: 500,
+        easing: 'easeOutCubic',
+        begin: function(anim) {
+            editForm.style.display = 'block';
+        }
+    });
+
+    editForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const updatedData = {
-            service_name: serviceSelect.value === 'custom' ? customServiceInput.value : serviceSelect.value,
-            category_name: categorySelect.value,
-            amount: editForm.querySelector('#edit-amount').value,
+            service_name: editServiceSelect.value === 'custom' ? editCustomServiceInput.value : editServiceSelect.value,
+            category_name: editCategorySelect.value,
+            amount: parseFloat(editForm.querySelector('#edit-amount').value),
             currency: editForm.querySelector('#edit-currency').value
         };
 
         try {
             const response = await fetch(`/update_subscription/${subscriptionId}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedData)
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedData),
             });
 
             if (response.ok) {
                 await updateSubscriptionsList();
+                tg.showPopup({
+                    title: 'Успех',
+                    message: 'Подписка успешно обновлена',
+                    buttons: [{ type: 'close' }]
+                });
             } else {
                 throw new Error('Failed to update subscription');
             }
@@ -855,20 +877,6 @@ async function editSubscription(subscriptionId) {
         }
         subscriptionItem.classList.remove('editing');
         editForm.remove();
-    });
-
-    subscriptionItem.appendChild(editForm);
-
-    // Добавляем анимацию появления формы
-    anime({
-        targets: editForm,
-        opacity: [0, 1],
-        translateY: [-20, 0],
-        duration: 500,
-        easing: 'easeOutCubic',
-        begin: function(anim) {
-            editForm.style.display = 'block';
-        }
     });
 }
 

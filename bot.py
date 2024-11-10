@@ -4,7 +4,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    url = "https://b09c-95-25-19-47.ngrok-free.app"
+    url = "https://6f0b-95-25-19-47.ngrok-free.app"
     keyboard = [
         [InlineKeyboardButton("Open", web_app=WebAppInfo(url=url))]
     ]
