@@ -858,6 +858,18 @@ async function editSubscription(subscriptionId) {
     });
 
     subscriptionItem.appendChild(editForm);
+
+    // Добавляем анимацию появления формы
+    anime({
+        targets: editForm,
+        opacity: [0, 1],
+        translateY: [-20, 0],
+        duration: 500,
+        easing: 'easeOutCubic',
+        begin: function(anim) {
+            editForm.style.display = 'block';
+        }
+    });
 }
 
 async function loadServicesAndCategories() {
@@ -889,6 +901,16 @@ function animateNoSubscriptions() {
         easing: 'spring(1, 80, 10, 0)',
         loop: true,
         direction: 'alternate'
+    });
+}
+
+function animateEditForm(editForm) {
+    anime({
+        targets: editForm,
+        opacity: [0, 1],
+        translateY: [-20, 0],
+        duration: 500,
+        easing: 'easeOutCubic'
     });
 }
 // Инициализация приложения при загрузке

@@ -125,6 +125,8 @@ h1 {
     padding: 15px;
     border-radius: 8px;
     margin-top: 10px;
+    opacity: 0;
+    transform: translateY(-20px);
 }
 
 .edit-form .form-group {
