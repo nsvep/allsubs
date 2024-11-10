@@ -321,8 +321,15 @@ function sortSubscriptions(sortBy, subscriptionsList) {
     items.sort((a, b) => {
         let comparison = 0;
         if (sortBy === 'next_payment') {
-            const aDate = new Date(a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
-            const bDate = new Date(b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
+            // Извлекаем дату из элемента
+            const aDateText = a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1];
+            const bDateText = b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1];
+
+            // Преобразуем текст даты в объект Date
+            const aDate = parseDateString(aDateText);
+            const bDate = parseDateString(bDateText);
+
+            // Сравниваем даты
             comparison = aDate - bDate;
         } else if (sortBy === 'amount') {
             const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
@@ -339,6 +346,25 @@ function sortSubscriptions(sortBy, subscriptionsList) {
     sortOrder[sortBy] = sortOrder[sortBy] === 'asc' ? 'desc' : 'asc';
 
     updateSortButtonsState(sortBy);
+}
+
+function parseDateString(dateString) {
+    const [day, month] = dateString.split(' ');
+    const monthIndex = [
+        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ].indexOf(month);
+
+    const now = new Date();
+    const year = now.getFullYear();
+    const date = new Date(year, monthIndex, parseInt(day));
+
+    // Если дата уже прошла, предполагаем, что это следующий год
+    if (date < now) {
+        date.setFullYear(year + 1);
+    }
+
+    return date;
 }
 
 function updateSortButtonsState(activeSortBy) {
