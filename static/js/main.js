@@ -6,6 +6,10 @@ let services = [];
 let categories = [];
 let currentSlide = 1;
 let isSaving = false;
+let sortOrder = {
+    amount: 'desc',
+    next_payment: 'asc'
+};
 
 // Кэширование DOM-элементов
 const elements = {
@@ -313,25 +317,35 @@ function addSortingFunctionality(subscriptionsList) {
 function sortSubscriptions(sortBy, subscriptionsList) {
     debugLog(`Сортировка подписок по ${sortBy}`);
     const items = Array.from(subscriptionsList.children);
+
     items.sort((a, b) => {
+        let comparison = 0;
         if (sortBy === 'next_payment') {
             const aDate = new Date(a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
             const bDate = new Date(b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1]);
-            return aDate - bDate;
+            comparison = aDate - bDate;
         } else if (sortBy === 'amount') {
             const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
             const bAmount = parseFloat(b.querySelector('.subscription-amount .field-content').textContent);
-            return bAmount - aAmount;
+            comparison = bAmount - aAmount;
         }
+
+        return sortOrder[sortBy] === 'asc' ? comparison : -comparison;
     });
+
     items.forEach(item => subscriptionsList.appendChild(item));
+
+    // Переключаем порядок сортировки
+    sortOrder[sortBy] = sortOrder[sortBy] === 'asc' ? 'desc' : 'asc';
 
     updateSortButtonsState(sortBy);
 }
 
 function updateSortButtonsState(activeSortBy) {
-    document.querySelectorAll('.sort-button').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.sort === activeSortBy);
+    document.querySelectorAll('.sort-button').forEach(button => {
+        const sortBy = button.dataset.sort;
+        button.classList.toggle('active', sortBy === activeSortBy);
+        button.textContent = `Сортировать по ${sortBy === 'amount' ? 'сумме' : 'дате'} ${sortOrder[sortBy] === 'asc' ? '↑' : '↓'}`;
     });
 }
 function showSubscriptionMenu(subscriptionId) {
