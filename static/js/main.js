@@ -29,14 +29,46 @@ const elements = {
 function closeSubscriptionForm() {
     toggleAddSubscriptionForm(false);
 }
+function animateLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    const circle = loadingScreen.querySelector('circle');
 
+    anime({
+        targets: circle,
+        strokeDashoffset: [anime.setDashoffset, 0],
+        easing: 'easeInOutSine',
+        duration: 3000,
+        delay: function(el, i) { return i * 250 },
+        direction: 'alternate',
+        loop: true
+    });
+
+    anime({
+        targets: '.app-title',
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 2000,
+        easing: 'easeOutQuad'
+    });
+
+    anime({
+        targets: '.loading-text',
+        opacity: [0, 1],
+        duration: 2000,
+        delay: 1000,
+        easing: 'easeInOutQuad'
+    });
+}
 // Инициализация приложения
 async function init() {
     debugLog('Инициализация приложения начата');
+    animateLoadingScreen();
+
     const telegramUser = tg.initDataUnsafe?.user;
     if (!telegramUser) {
         debugLog('Ошибка: данные пользователя Telegram не найдены');
         console.error('Telegram User data not found');
+        setTimeout(hideLoadingScreen, 5000);
         return;
     }
 
@@ -62,7 +94,6 @@ async function init() {
             debugLog(`Пользователь авторизован. ID: ${userId}`);
             showDebugOutputForAdmin(userId);
 
-            // Параллельная загрузка данных
             try {
                 const [servicesData, categoriesData, subscriptionsData] = await Promise.all([
                     fetchServices(),
@@ -86,17 +117,23 @@ async function init() {
                     button.addEventListener('click', closeSubscriptionForm);
                 });
                 debugLog('Инициализация приложения завершена успешно');
+
+                // Гарантированный вызов hideLoadingScreen через 5 секунд
+                setTimeout(hideLoadingScreen, 5000);
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
                 console.error('Error loading data:', error);
+                setTimeout(hideLoadingScreen, 5000);
             }
         } else {
             debugLog('Ошибка при получении информации о пользователе');
-            throw new Error('Failed to get user info');
+            console.error('Error getting user info');
+            setTimeout(hideLoadingScreen, 5000);
         }
     } catch (error) {
         debugLog(`Ошибка при инициализации: ${error.message}`);
-        console.error('Initialization error:', error);
+        console.error('Error during initialization:', error);
+        setTimeout(hideLoadingScreen, 5000);
     }
 }
 
@@ -920,6 +957,26 @@ function animateEditForm(editForm) {
         duration: 500,
         easing: 'easeOutCubic'
     });
+}
+
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    if (loadingScreen) {
+        anime({
+            targets: loadingScreen,
+            opacity: [1, 0],
+            duration: 1200,
+            easing: 'easeOutQuad',
+            complete: function() {
+                loadingScreen.style.display = 'none';
+                console.log('Loading screen hidden');
+                debugLog('Загрузочный экран скрыт');
+            }
+        });
+    } else {
+        console.error('Loading screen element not found');
+        debugLog('Элемент загрузочного экрана не найден');
+    }
 }
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {
