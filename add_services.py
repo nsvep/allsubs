@@ -5,15 +5,13 @@ def add_categories_and_services():
     with app.app_context():
         # Добавление категорий
         categories = [
-            "Развлечения",
+            "Мульти",
             "Музыка",
-            "Видео",
-            "Образование",
-            "Облачные хранилища",
+            "Кино",
+            "Книги",
             "Программное обеспечение",
             "Игры",
-            "Новости",
-            "Спорт",
+            "Банковские услуги",
             "Другое"
         ]
 
@@ -27,15 +25,14 @@ def add_categories_and_services():
 
         # Словарь сервисов по категориям
         services = {
-            "Развлечения": ["Netflix", "Disney+", "HBO Max", "Amazon Prime Video"],
-            "Музыка": ["Spotify", "Apple Music", "Tidal", "YouTube Music"],
-            "Видео": ["YouTube Premium", "Vimeo", "Twitch"],
-            "Образование": ["Coursera", "Udemy", "Skillshare", "MasterClass"],
-            "Облачные хранилища": ["Dropbox", "Google One", "iCloud", "OneDrive"],
-            "Программное обеспечение": ["Adobe Creative Cloud", "Microsoft 365", "Notion", "Evernote"],
-            "Игры": ["PlayStation Plus", "Xbox Game Pass", "Nintendo Switch Online"],
-            "Новости": ["The New York Times", "The Wall Street Journal", "The Economist"],
-            "Спорт": ["ESPN+", "DAZN", "NBA League Pass"],
+            "Мульти": ["Telegram Premium", "OZON Premium", "WB Клуб", "МТС Premium", "Пакет X5", "СберПрайм","Яндекс Плюс"],
+            "Музыка": ["Apple Music", "Spotify", "VK Музыка", "МТС Музыка"],
+            "Кино": ["Netflix", "Apple TV", "KION", "More.tv", "Okko", "PREMIER", "Start", "ИВИ"],
+            "Книги": ["MyBook", "ЛитРес", "Литнет", "Патефон", "Строки", "Яндекс Книги"],
+            "Программное обеспечение": ["Adobe Creative Cloud", "Microsoft 365", "Photoshop"],
+            "Игры": ["Apple Arcade", "PlayStation Plus", "Xbox Game Pass"],
+            "Банковские услуги": ["Tinkoff Pro", "Альфа‑Смарт (Альфа-Банк)", "Всё Своё. Продвинутый (Россельхозбанк)", "Газпром Бонус", "Привилегии Плюс (ВТБ)", "Халва. Десятка"],
+            "Другое": ["VPN", "Интернет", "Мобильная связь", "Пожертвования"],
         }
 
         # Добавление сервисов
