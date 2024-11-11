@@ -8,10 +8,12 @@ import pytz
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
+from flask_cors import CORS
 
 app = Flask(__name__, static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/subsub'
 db = SQLAlchemy(app)
+CORS(app)
 migrate = Migrate(app, db)
 
 
@@ -419,6 +421,28 @@ def update_subscription(subscription_id):
 
     app.logger.info(f"Updated subscription: {subscription.id}, {subscription.service_name}")
     return jsonify({"message": "Subscription updated successfully"})
+
+
+@app.route('/get_user_subscriptions_for_bot/<int:telegram_id>')
+def get_user_subscriptions_for_bot(telegram_id):
+    app.logger.info(f"Received request for telegram_id: {telegram_id}")
+
+    user = User.query.filter_by(telegram_id=telegram_id).first()
+    if not user:
+        app.logger.warning(f"User not found for telegram_id: {telegram_id}")
+        return jsonify([])
+
+    subscriptions = Subscription.query.filter_by(user_id=user.id, is_archived=False).all()
+    app.logger.info(f"Found {len(subscriptions)} subscriptions for user {user.id}")
+
+    result = [{
+        'service_name': sub.service_name,
+        'amount': sub.amount,
+        'currency': sub.currency
+    } for sub in subscriptions]
+
+    app.logger.info(f"Returning result: {result}")
+    return jsonify(result)
 
 import atexit
 atexit.register(lambda: scheduler.shutdown())
