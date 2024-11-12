@@ -5,7 +5,7 @@ import requests
 TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    url = "https://847b-95-25-19-47.ngrok-free.app"
+    url = "https://d485-95-25-19-47.ngrok-free.app"
     keyboard = [
         [InlineKeyboardButton("Open", web_app=WebAppInfo(url=url))]
     ]
@@ -13,9 +13,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Open", reply_markup=reply_markup)
 
 
-async def my_subscriptions(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def my_subs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_id = update.effective_user.id
-    url = f'https://847b-95-25-19-47.ngrok-free.app/get_user_subscriptions_for_bot/{telegram_id}'
+    url = f'https://d485-95-25-19-47.ngrok-free.app/get_user_subscriptions_for_bot/{telegram_id}'
     print(f"Sending request to: {url}")  # Отладочное сообщение
 
     try:
@@ -42,7 +42,7 @@ def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("my_subscriptions", my_subscriptions))
+    application.add_handler(CommandHandler("my_subs", my_subs))
 
     application.run_polling()
 
