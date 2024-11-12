@@ -266,10 +266,13 @@ h1 {
 
 /* Нижняя навигация */
 .bottom-navbar {
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: var(--tg-theme-bg-color);
+    width: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -284,10 +287,9 @@ h1 {
     align-items: center;
     text-decoration: none;
     color: var(--tg-theme-hint-color);
-    transition: color 0.3s ease;
-    position: relative;
-    flex: 1;
+    transition: all 0.3s ease;
     padding: 10px 0;
+    flex: 1;
 }
 
 .nav-item .icon {
@@ -305,8 +307,8 @@ h1 {
 
 .nav-item span {
     font-size: 12px;
-    transition: transform 0.3s ease;
 }
+
 
 .nav-item:hover .icon,
 .nav-item.active .icon {
@@ -321,9 +323,9 @@ h1 {
 .nav-indicator {
     position: absolute;
     bottom: 0;
-    height: 3px;
+    height: 4px;
     background-color: var(--tg-theme-button-color);
-    transition: 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .nav-item.active {

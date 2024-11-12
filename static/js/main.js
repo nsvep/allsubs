@@ -739,8 +739,13 @@ function initNavbar() {
         const itemRect = item.getBoundingClientRect();
         const navbarRect = item.closest('.bottom-navbar').getBoundingClientRect();
 
-        navIndicator.style.width = `${itemRect.width}px`;
-        navIndicator.style.left = `${itemRect.left - navbarRect.left}px`;
+        anime({
+            targets: navIndicator,
+            width: `${itemRect.width}px`,
+            left: `${itemRect.left - navbarRect.left}px`,
+            easing: 'easeOutElastic(1, .5)',
+            duration: 600
+        });
     }
 
     navItems.forEach(item => {
@@ -761,6 +766,14 @@ function initNavbar() {
     if (activeItem) {
         setIndicatorPosition(activeItem);
     }
+
+    // Обработка изменения размера окна
+    window.addEventListener('resize', () => {
+        const currentActiveItem = document.querySelector('.nav-item.active');
+        if (currentActiveItem) {
+            setIndicatorPosition(currentActiveItem);
+        }
+    });
 
     debugLog('Инициализация навигационной панели завершена');
 }
