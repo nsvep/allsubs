@@ -559,6 +559,16 @@ function toggleAddSubscriptionForm(show) {
                 subscriptionsList.style.display = 'block';
                 resetForm();
                 toggleNavbar(true);
+
+                // Активируем пункт "Подписки" в нижнем navbar
+                const navItems = document.querySelectorAll('.nav-item');
+                const subscriptionsNavItem = document.getElementById('navSubscriptions');
+
+                navItems.forEach(item => item.classList.remove('active'));
+                subscriptionsNavItem.classList.add('active');
+
+                // Перемещаем индикатор
+                setIndicatorPosition(subscriptionsNavItem);
             }
         });
     }
@@ -717,6 +727,19 @@ function skipSlide() {
     }
 }
 
+function setIndicatorPosition(item) {
+    const navIndicator = document.querySelector('.nav-indicator');
+    const itemRect = item.getBoundingClientRect();
+    const navbarRect = item.closest('.bottom-navbar').getBoundingClientRect();
+
+    anime({
+        targets: navIndicator,
+        width: `${itemRect.width}px`,
+        left: `${itemRect.left - navbarRect.left}px`,
+        easing: 'easeOutElastic(1, .5)',
+        duration: 600
+    });
+}
 // Инициализация нижней навигации
 function initNavbar() {
     debugLog('Инициализация навигационной панели');
@@ -734,19 +757,6 @@ function initNavbar() {
             // Здесь можно добавить логику для отображения календаря
         }
     };
-
-    function setIndicatorPosition(item) {
-        const itemRect = item.getBoundingClientRect();
-        const navbarRect = item.closest('.bottom-navbar').getBoundingClientRect();
-
-        anime({
-            targets: navIndicator,
-            width: `${itemRect.width}px`,
-            left: `${itemRect.left - navbarRect.left}px`,
-            easing: 'easeOutElastic(1, .5)',
-            duration: 600
-        });
-    }
 
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
