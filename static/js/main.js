@@ -34,6 +34,8 @@ function closeSubscriptionForm() {
     toggleAddSubscriptionForm(false);
 }
 function animateLoadingScreen() {
+
+    tg.expand();
     const loadingScreen = document.getElementById('loading-screen');
     const circle = loadingScreen.querySelector('circle');
 
