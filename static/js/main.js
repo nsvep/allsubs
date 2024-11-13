@@ -861,13 +861,33 @@ function toggleNavbar(show) {
         const backButton = document.createElement('button');
         backButton.textContent = 'Назад к подпискам';
         backButton.classList.add('back-button');
+        backButton.style.opacity = '0';  // Начальная прозрачность для анимации
         backButton.addEventListener('click', () => {
-            document.getElementById('profile-section').style.display = 'none';
-            elements.subscriptions.style.display = 'block';
-            toggleNavbar(true);
-            backButton.remove();
+            anime({
+                targets: '#profile-section',
+                opacity: 0,
+                translateY: 20,
+                duration: 500,
+                easing: 'easeInCubic',
+                complete: function() {
+                    document.getElementById('profile-section').style.display = 'none';
+                    elements.subscriptions.style.display = 'block';
+                    animateSubscriptionsReturn();  // Добавляем анимацию возврата
+                    toggleNavbar(true);
+                    backButton.remove();
+                }
+            });
         });
         document.querySelector('main').prepend(backButton);
+
+        // Анимация появления кнопки "Назад"
+        anime({
+            targets: backButton,
+            opacity: [0, 1],
+            translateX: [-20, 0],
+            duration: 500,
+            easing: 'easeOutCubic'
+        });
     }
 }
 
@@ -1106,6 +1126,7 @@ function showProfilePage() {
         document.querySelector('main').appendChild(profileSection);
     }
     profileSection.style.display = 'block';
+    profileSection.style.opacity = '0';  // Начальная прозрачность для анимации
 
     // Скрываем иконку профиля
     if (elements.profileLink) {
@@ -1114,6 +1135,25 @@ function showProfilePage() {
 
     // Скрываем нижнюю навигацию
     toggleNavbar(false);
+
+    // Анимация появления профиля
+    anime({
+        targets: profileSection,
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 800,
+        easing: 'easeOutCubic'
+    });
+}
+
+function animateSubscriptionsReturn() {
+    anime({
+        targets: elements.subscriptions,
+        opacity: [0, 1],
+        translateY: [20, 0],
+        duration: 800,
+        easing: 'easeOutCubic'
+    });
 }
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {
