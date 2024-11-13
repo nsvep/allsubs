@@ -1257,14 +1257,29 @@ function renderCalendar() {
         elements.calendarDays.appendChild(document.createElement('div'));
     }
 
+    const today = new Date();
+
     for (let i = 1; i <= lastDay.getDate(); i++) {
         const dayElement = document.createElement('div');
         dayElement.textContent = i;
         dayElement.classList.add('calendar-day');
 
         const currentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+
+        const isToday = i === today.getDate() &&
+                        currentDate.getMonth() === today.getMonth() &&
+                        currentDate.getFullYear() === today.getFullYear();
+
+        if (isToday) {
+            dayElement.classList.add('today');
+        }
+
         if (hasEvent(currentDateString)) {
             dayElement.classList.add('has-event');
+        }
+
+        if (isToday && hasEvent(currentDateString)) {
+            dayElement.classList.add('today-has-event');
         }
 
         dayElement.addEventListener('click', () => showEvents(currentDateString));
