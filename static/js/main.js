@@ -1211,12 +1211,15 @@ function animateSubscriptionsReturn() {
     });
 }
 
-function showCalendar(event) {
+async function showCalendar(event) {
     if (event) event.preventDefault();
     hideAllSections();
     elements.calendarView.style.display = 'block';
+    debugLog('Начало отображения календаря');
+    await loadUserSubscriptions();
     renderCalendar();
     toggleNavbar(true);
+    debugLog('Завершение отображения календаря');
 }
 
 function hideAllSections() {
@@ -1323,6 +1326,26 @@ function handleBackButton() {
             document.querySelector('.back-button').style.display = 'none';
         }
     });
+}
+
+async function loadUserSubscriptions() {
+    debugLog('Начало загрузки подписок пользователя');
+    try {
+        debugLog(`Отправка запроса на /api/calendar-events?user_id=${userId}`);
+        const response = await fetch(`/api/calendar-events?user_id=${userId}`);
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+        }
+        const data = await response.json();
+        subscriptions = data;
+        debugLog(`Успешно загружено ${subscriptions.length} подписок`);
+        debugLog('Данные подписок:', JSON.stringify(subscriptions));
+    } catch (error) {
+        debugLog(`Ошибка при загрузке подписок: ${error.message}`);
+        console.error('Error loading subscriptions:', error);
+    }
+    debugLog('Завершение загрузки подписок пользователя');
 }
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {

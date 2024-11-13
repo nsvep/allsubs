@@ -9,6 +9,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/subsub'
@@ -450,10 +454,27 @@ def profile():
 
 @app.route('/api/calendar-events')
 def calendar_events():
-    user_id = request.args.get('user_id')
-    # Получите подписки пользователя из базы данных
-    subscriptions = get_user_subscriptions(user_id)
-    return jsonify(subscriptions)
+    try:
+        user_id = request.args.get('user_id')
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Изменяем запрос, чтобы получить только неархивные подписки
+        subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=False).all()
+
+        events = [{
+            'id': sub.id,
+            'service': sub.service_name,
+            'amount': sub.amount,
+            'currency': sub.currency,
+            'nextPaymentDate': sub.start_date.strftime('%Y-%m-%d') if sub.start_date else None
+        } for sub in subscriptions]
+
+        app.logger.info(f"Calendar events for user {user_id}: {events}")
+        return jsonify(events)
+    except Exception as e:
+        app.logger.error(f"Error in calendar_events: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 import atexit
 atexit.register(lambda: scheduler.shutdown())
