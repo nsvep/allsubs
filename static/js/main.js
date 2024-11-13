@@ -13,6 +13,7 @@ let sortOrder = {
 
 // Кэширование DOM-элементов
 const elements = {
+    profileLink: document.getElementById('profileLink'),
     subscriptions: document.getElementById('subscriptions'),
     serviceSelect: document.getElementById('serviceSelect'),
     customService: document.getElementById('customService'),
@@ -126,6 +127,18 @@ async function init() {
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
                 setTimeout(hideLoadingScreen, 5000);
+
+                // Добавляем обработчик для иконки профиля
+                if (elements.profileLink) {
+                    elements.profileLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        showProfilePage();
+                    });
+                }
+
+                if (elements.profileLink) {
+                    elements.profileLink.style.display = 'block';
+                }
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
                 console.error('Error loading data:', error);
@@ -837,8 +850,24 @@ function toggleNavbar(show) {
     const navbar = document.querySelector('.bottom-navbar');
     if (show) {
         navbar.style.display = 'flex';
+        // Показываем иконку профиля
+        if (elements.profileLink) {
+            elements.profileLink.style.display = 'block';
+        }
     } else {
         navbar.style.display = 'none';
+
+        // Добавьте кнопку "Назад" при скрытии навбара
+        const backButton = document.createElement('button');
+        backButton.textContent = 'Назад к подпискам';
+        backButton.classList.add('back-button');
+        backButton.addEventListener('click', () => {
+            document.getElementById('profile-section').style.display = 'none';
+            elements.subscriptions.style.display = 'block';
+            toggleNavbar(true);
+            backButton.remove();
+        });
+        document.querySelector('main').prepend(backButton);
     }
 }
 
@@ -1059,6 +1088,32 @@ function hideLoadingScreen() {
         console.error('Loading screen element not found');
         debugLog('Элемент загрузочного экрана не найден');
     }
+}
+
+function showProfilePage() {
+    // Скрываем все секции
+    elements.subscriptions.style.display = 'none';
+    document.getElementById('add-subscription-form').style.display = 'none';
+    // Если у вас есть секция календаря, скройте её тоже
+    // document.getElementById('calendar-view').style.display = 'none';
+
+    // Показываем страницу профиля
+    let profileSection = document.getElementById('profile-section');
+    if (!profileSection) {
+        profileSection = document.createElement('section');
+        profileSection.id = 'profile-section';
+        profileSection.innerHTML = '<h2>Профиль пользователя</h2><p>Здесь будет информация о профиле.</p>';
+        document.querySelector('main').appendChild(profileSection);
+    }
+    profileSection.style.display = 'block';
+
+    // Скрываем иконку профиля
+    if (elements.profileLink) {
+        elements.profileLink.style.display = 'none';
+    }
+
+    // Скрываем нижнюю навигацию
+    toggleNavbar(false);
 }
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {

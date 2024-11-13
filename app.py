@@ -444,6 +444,10 @@ def get_user_subscriptions_for_bot(telegram_id):
     app.logger.info(f"Returning result: {result}")
     return jsonify(result)
 
+@app.route('/profile')
+def profile():
+    return render_template('index.html')
+
 import atexit
 atexit.register(lambda: scheduler.shutdown())
 
