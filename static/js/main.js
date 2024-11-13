@@ -538,7 +538,6 @@ async function updateSubscriptionsList() {
     }
 }
 
-// Показать модальное окно
 function toggleAddSubscriptionForm(show) {
     const addSubscriptionForm = document.getElementById('add-subscription-form');
     const subscriptionsList = document.getElementById('subscriptions');
@@ -552,6 +551,17 @@ function toggleAddSubscriptionForm(show) {
         updateProgressBar();
         updateNavigationButtons();
         toggleNavbar(false);
+
+        // Скрываем иконку профиля
+        if (elements.profileLink) {
+            elements.profileLink.style.display = 'none';
+        }
+
+        // Скрываем кнопку "Назад к подпискам", если она есть
+        const backButton = document.querySelector('.back-button');
+        if (backButton) {
+            backButton.style.display = 'none';
+        }
 
         // Анимация открытия формы
         anime({
@@ -572,6 +582,20 @@ function toggleAddSubscriptionForm(show) {
                 subscriptionsList.style.display = 'block';
                 resetForm();
                 toggleNavbar(true);
+
+                // Показываем иконку профиля
+                if (elements.profileLink) {
+                    elements.profileLink.style.display = 'block';
+                }
+
+                // Показываем кнопку "Назад к подпискам", если мы на странице профиля
+                const profileSection = document.getElementById('profile-section');
+                if (profileSection && profileSection.style.display !== 'none') {
+                    const backButton = document.querySelector('.back-button');
+                    if (backButton) {
+                        backButton.style.display = 'block';
+                    }
+                }
 
                 // Активируем пункт "Подписки" в нижнем navbar
                 const navItems = document.querySelectorAll('.nav-item');
