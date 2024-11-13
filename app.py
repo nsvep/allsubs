@@ -448,6 +448,13 @@ def get_user_subscriptions_for_bot(telegram_id):
 def profile():
     return render_template('index.html')
 
+@app.route('/api/calendar-events')
+def calendar_events():
+    user_id = request.args.get('user_id')
+    # Получите подписки пользователя из базы данных
+    subscriptions = get_user_subscriptions(user_id)
+    return jsonify(subscriptions)
+
 import atexit
 atexit.register(lambda: scheduler.shutdown())
 

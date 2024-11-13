@@ -355,6 +355,7 @@ h1 {
     top: 20px;
     right: 20px;
     font-size: 24px;
+    z-index: 1000;
 }
 
 .profile-icon a {
@@ -372,6 +373,73 @@ h1 {
     border: none;
     border-radius: 5px;
     cursor: pointer;
+}
+
+/* Календарь */
+.calendar-container {
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-nav-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--tg-theme-button-color);
+    cursor: pointer;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.calendar-day:hover {
+    background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.calendar-day.has-event {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.event-list {
+    margin-top: 20px;
+}
+
+.event-item {
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 /* Слайды */
 .slide-controls {
@@ -547,6 +615,10 @@ h1 {
     font-size: 30px;
     margin: 0 15px;
     color: var(--tg-theme-button-color);
+}
+
+#subscriptions {
+    margin-top: 30px; /* Добавим отступ сверху для контейнера подписок */
 }
 
 #add-subscription-form {

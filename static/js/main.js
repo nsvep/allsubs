@@ -10,6 +10,8 @@ let sortOrder = {
     amount: 'desc',
     next_payment: 'asc'
 };
+let currentDate = new Date();
+let subscriptions = [];
 
 // Кэширование DOM-элементов
 const elements = {
@@ -28,7 +30,15 @@ const elements = {
     nextSlide: document.getElementById('nextSlide'),
     skipSlide: document.getElementById('skipSlide'),
     customServiceGroup: document.getElementById('customServiceGroup'),
-    categoryGroup: document.getElementById('categoryGroup')
+    categoryGroup: document.getElementById('categoryGroup'),
+    navCalendar: document.getElementById('navCalendar'),
+    calendarView: document.getElementById('calendar-view'),
+    currentMonth: document.getElementById('currentMonth'),
+    calendarDays: document.getElementById('calendarDays'),
+    prevMonth: document.getElementById('prevMonth'),
+    nextMonth: document.getElementById('nextMonth'),
+    eventList: document.getElementById('eventList')
+
 };
 
 function closeSubscriptionForm() {
@@ -123,6 +133,15 @@ async function init() {
                 document.querySelectorAll('.close-button').forEach(button => {
                     button.addEventListener('click', closeSubscriptionForm);
                 });
+                elements.navCalendar.addEventListener('click', showCalendar);
+                elements.prevMonth.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() - 1);
+                        renderCalendar();
+                });
+                elements.nextMonth.addEventListener('click', () => {
+                        currentDate.setMonth(currentDate.getMonth() + 1);
+                        renderCalendar();
+                });
                 debugLog('Инициализация приложения завершена успешно');
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
@@ -131,6 +150,13 @@ async function init() {
                 // Добавляем обработчик для иконки профиля
                 if (elements.profileLink) {
                     elements.profileLink.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        showProfilePage();
+                    });
+                }
+
+                if (elements.profileLink) {
+                    elements.profileLink.addEventListener('click', (e) => {
                         e.preventDefault();
                         showProfilePage();
                     });
@@ -211,6 +237,8 @@ function onServiceChange() {
 
 // Получение списка подписок
 async function fetchSubscriptions() {
+    hideAllSections();
+    elements.subscriptions.style.display = 'block';
     debugLog('Начало загрузки списка подписок');
     try {
         const response = await fetch(`/get_subscriptions/${userId}`);
@@ -543,6 +571,7 @@ function toggleAddSubscriptionForm(show) {
     const subscriptionsList = document.getElementById('subscriptions');
 
     if (show) {
+        hideAllSections();
         addSubscriptionForm.style.display = 'block';
         subscriptionsList.style.display = 'none';
         resetForm();
@@ -787,11 +816,12 @@ function initNavbar() {
         'navSubscriptions': fetchSubscriptions,
         'navAddSubscription': () => {
             debugLog('Нажата кнопка добавления подписки');
+            hideAllSections();
             toggleAddSubscriptionForm(true);
         },
         'navCalendar': () => {
             debugLog('Нажата кнопка календаря');
-            // Здесь можно добавить логику для отображения календаря
+            showCalendar();
         }
     };
 
@@ -801,6 +831,7 @@ function initNavbar() {
             navItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
             setIndicatorPosition(item);
+            hideAllSections(); // Скрываем все секции перед показом новой
             const action = navActions[item.id];
             if (action) {
                 action();
@@ -1136,10 +1167,7 @@ function hideLoadingScreen() {
 
 function showProfilePage() {
     // Скрываем все секции
-    elements.subscriptions.style.display = 'none';
-    document.getElementById('add-subscription-form').style.display = 'none';
-    // Если у вас есть секция календаря, скройте её тоже
-    // document.getElementById('calendar-view').style.display = 'none';
+    hideAllSections();
 
     // Показываем страницу профиля
     let profileSection = document.getElementById('profile-section');
@@ -1168,6 +1196,9 @@ function showProfilePage() {
         duration: 800,
         easing: 'easeOutCubic'
     });
+
+    // Добавляем кнопку "Назад"
+    addBackButton();
 }
 
 function animateSubscriptionsReturn() {
@@ -1177,6 +1208,120 @@ function animateSubscriptionsReturn() {
         translateY: [20, 0],
         duration: 800,
         easing: 'easeOutCubic'
+    });
+}
+
+function showCalendar(event) {
+    if (event) event.preventDefault();
+    hideAllSections();
+    elements.calendarView.style.display = 'block';
+    renderCalendar();
+    toggleNavbar(true);
+}
+
+function hideAllSections() {
+    const sections = document.querySelectorAll('main > section');
+    sections.forEach(section => section.style.display = 'none');
+
+    // Явно скрываем календарь и профиль
+    if (elements.calendarView) {
+        elements.calendarView.style.display = 'none';
+    }
+    const profileSection = document.getElementById('profile-section');
+    if (profileSection) {
+        profileSection.style.display = 'none';
+    }
+
+    // Скрываем кнопку "Назад"
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.style.display = 'none';
+    }
+}
+
+function renderCalendar() {
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь",
+        "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+
+    elements.currentMonth.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+    elements.calendarDays.innerHTML = '';
+
+    const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+    for (let i = 1; i < firstDay.getDay(); i++) {
+        elements.calendarDays.appendChild(document.createElement('div'));
+    }
+
+    for (let i = 1; i <= lastDay.getDate(); i++) {
+        const dayElement = document.createElement('div');
+        dayElement.textContent = i;
+        dayElement.classList.add('calendar-day');
+
+        const currentDateString = `${currentDate.getFullYear()}-${(currentDate.getMonth() + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
+        if (hasEvent(currentDateString)) {
+            dayElement.classList.add('has-event');
+        }
+
+        dayElement.addEventListener('click', () => showEvents(currentDateString));
+        elements.calendarDays.appendChild(dayElement);
+    }
+}
+
+function hasEvent(dateString) {
+    return subscriptions.some(sub => sub.nextPaymentDate === dateString);
+}
+
+function showEvents(dateString) {
+    const eventList = document.getElementById('eventList');
+    eventList.innerHTML = '';
+
+    const events = subscriptions.filter(sub => sub.nextPaymentDate === dateString);
+
+    if (events.length === 0) {
+        eventList.innerHTML = '<p>Нет событий на этот день</p>';
+        return;
+    }
+
+    events.forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.classList.add('event-item');
+        eventItem.innerHTML = `
+            <h3>${event.service}</h3>
+            <p>Сумма: ${event.amount} ${event.currency}</p>
+        `;
+        eventList.appendChild(eventItem);
+    });
+}
+
+function addBackButton() {
+    let backButton = document.querySelector('.back-button');
+    if (!backButton) {
+        backButton = document.createElement('button');
+        backButton.textContent = 'Назад к подпискам';
+        backButton.classList.add('back-button');
+        document.querySelector('main').prepend(backButton);
+    }
+
+    backButton.style.display = 'block';
+    backButton.addEventListener('click', handleBackButton);
+}
+
+function handleBackButton() {
+    const profileSection = document.getElementById('profile-section');
+    anime({
+        targets: profileSection,
+        opacity: 0,
+        translateY: 20,
+        duration: 500,
+        easing: 'easeInCubic',
+        complete: function() {
+            profileSection.style.display = 'none';
+            fetchSubscriptions();
+            toggleNavbar(true);
+            document.querySelector('.back-button').style.display = 'none';
+        }
     });
 }
 // Инициализация приложения при загрузке
