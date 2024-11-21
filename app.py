@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/subsub'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:aboba123@localhost/allsub3'
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
@@ -45,6 +45,7 @@ class Subscription(db.Model):
     total_spent = db.Column(db.Float, default=0)
     last_payment_date = db.Column(db.Date)
     is_archived = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Europe/Moscow')))
 
     category = db.relationship('Category', backref=db.backref('subscriptions', lazy=True))
     payments = db.relationship('Payment', backref='subscription', lazy=True, cascade="all, delete-orphan")
