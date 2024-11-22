@@ -117,20 +117,22 @@ async function init() {
             showDebugOutputForAdmin(userId);
 
             try {
-                const [servicesData, categoriesData, subscriptionsData] = await Promise.all([
+                const [servicesData, categoriesData] = await Promise.all([
                     fetchServices(),
-                    fetchCategories(),
-                    fetchSubscriptions()
+                    fetchCategories()
                 ]);
 
                 services = servicesData;
                 categories = categoriesData;
+
+                // Используем updateSubscriptionsList вместо отдельных вызовов fetchSubscriptions и displaySubscriptions
                 await updateSubscriptionsList();
 
                 updateSelects(services, categories);
                 initNavbar();
                 debugLog('Вызвана функция initNavbar()');
 
+                // Добавление обработчиков событий
                 elements.serviceSelect.addEventListener('change', onServiceChange);
                 elements.prevSlide.addEventListener('click', prevSlide);
                 elements.nextSlide.addEventListener('click', nextSlide);
@@ -140,36 +142,28 @@ async function init() {
                 });
                 elements.navCalendar.addEventListener('click', showCalendar);
                 elements.prevMonth.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() - 1);
-                        renderCalendar();
+                    currentDate.setMonth(currentDate.getMonth() - 1);
+                    renderCalendar();
                 });
                 elements.nextMonth.addEventListener('click', () => {
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                        renderCalendar();
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                    renderCalendar();
                 });
-                debugLog('Инициализация приложения завершена успешно');
 
-                // Гарантированный вызов hideLoadingScreen через 5 секунд
-                setTimeout(hideLoadingScreen, 5000);
-
-                // Добавляем обработчик для иконки профиля
+                // Добавление обработчика для иконки профиля
                 if (elements.profileLink) {
                     elements.profileLink.addEventListener('click', function(e) {
                         e.preventDefault();
                         showProfilePage();
                     });
-                }
-
-                if (elements.profileLink) {
-                    elements.profileLink.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        showProfilePage();
-                    });
-                }
-
-                if (elements.profileLink) {
                     elements.profileLink.style.display = 'block';
                 }
+
+                debugLog('Инициализация приложения завершена успешно');
+
+                // Гарантированный вызов hideLoadingScreen через 5 секунд
+                setTimeout(hideLoadingScreen, 5000);
+
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
                 console.error('Error loading data:', error);
@@ -266,10 +260,18 @@ async function displaySubscriptions(subscriptions) {
     if (subscriptions.length === 0) {
         displayNoSubscriptions();
     } else {
-        await displaySubscriptionsList(subscriptions);
+        const subscriptionsList = document.createElement('div');
+        subscriptionsList.className = 'subscriptions-list';
+
+        for (const sub of subscriptions) {
+            const subElement = await createSubscriptionElement(sub);
+            subscriptionsList.appendChild(subElement);
+        }
+
+        elements.subscriptions.appendChild(subscriptionsList);
+        addSortingFunctionality(subscriptionsList);
     }
 
-    // Принудительно отображаем или скрываем контейнер сортировки
     toggleSortButtonsContainer(subscriptions.length > 0);
 }
 
@@ -573,7 +575,7 @@ async function deleteSubscription(subscriptionId) {
 async function updateSubscriptionsList() {
     try {
         const subscriptions = await fetchSubscriptions();
-        displaySubscriptions(subscriptions);
+        await displaySubscriptions(subscriptions);
     } catch (error) {
         debugLog(`Ошибка при обновлении списка подписок: ${error.message}`);
         console.error('Error updating subscriptions list:', error);
@@ -1223,6 +1225,13 @@ function showProfilePage() {
 
     // Добавляем кнопку "Назад"
     addBackButton();
+
+    // Убедимся, что обработчик события добавлен
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.removeEventListener('click', handleBackButton); // Удаляем старый обработчик, если он есть
+        backButton.addEventListener('click', handleBackButton); // Добавляем новый обработчик
+    }
 }
 
 function animateSubscriptionsReturn() {
@@ -1362,11 +1371,16 @@ function handleBackButton() {
         translateY: 20,
         duration: 500,
         easing: 'easeInCubic',
-        complete: function() {
+        complete: async function() {
             profileSection.style.display = 'none';
-            fetchSubscriptions().then((subscriptions) => {
+            try {
+                await updateSubscriptionsList();
+                const subscriptions = await fetchSubscriptions();
                 toggleSortButtonsContainer(subscriptions.length > 0);
-            });
+            } catch (error) {
+                console.error('Error updating subscriptions:', error);
+                debugLog(`Ошибка при обновлении подписок: ${error.message}`);
+            }
             toggleNavbar(true);
             document.querySelector('.back-button').style.display = 'none';
         }
