@@ -38,7 +38,6 @@ const elements = {
     prevMonth: document.getElementById('prevMonth'),
     nextMonth: document.getElementById('nextMonth'),
     eventList: document.getElementById('eventList'),
-    sortButtonsContainer: document.getElementById('sort-buttons-container')
 
 };
 
@@ -81,10 +80,6 @@ function animateLoadingScreen() {
 async function init() {
     debugLog('Инициализация приложения начата');
     animateLoadingScreen();
-
-    if (elements.sortButtonsContainer) {
-        elements.sortButtonsContainer.style.display = 'none';
-    }
 
     const telegramUser = tg.initDataUnsafe?.user;
     if (!telegramUser) {
@@ -269,10 +264,8 @@ async function displaySubscriptions(subscriptions) {
         }
 
         elements.subscriptions.appendChild(subscriptionsList);
-        addSortingFunctionality(subscriptionsList);
     }
 
-    toggleSortButtonsContainer(subscriptions.length > 0);
 }
 
 function displayNoSubscriptions() {
@@ -280,9 +273,6 @@ function displayNoSubscriptions() {
     elements.subscriptions.appendChild(noSubscriptionsElement);
     animateNoSubscriptions();
     debugLog('Отображено сообщение об отсутствии подписок с анимацией');
-
-    // Скрываем контейнер сортировки, так как нет подписок для сортировки
-    toggleSortButtonsContainer(false);
 }
 
 function createNoSubscriptionsElement() {
@@ -312,7 +302,6 @@ async function displaySubscriptionsList(subscriptions) {
     }
 
     elements.subscriptions.appendChild(subscriptionsList);
-    addSortingFunctionality(subscriptionsList);
 }
 
 function createSubscriptionElement(sub) {
@@ -356,83 +345,6 @@ function createField(className, icon, content) {
     `;
 }
 
-function addSortingFunctionality(subscriptionsList) {
-    const sortButtons = `
-        <button class="sort-button" data-sort="next_payment">
-            <i class="fas fa-calendar-alt"></i> По дате
-        </button>
-        <button class="sort-button" data-sort="amount">
-            <i class="fas fa-coins"></i> По сумме
-        </button>
-    `;
-    const sortButtonsContainer = document.getElementById('sort-buttons-container');
-    sortButtonsContainer.innerHTML = sortButtons;
-
-    document.querySelectorAll('.sort-button').forEach(button => {
-        button.addEventListener('click', () => sortSubscriptions(button.dataset.sort, subscriptionsList));
-    });
-}
-
-function sortSubscriptions(sortBy, subscriptionsList) {
-    debugLog(`Сортировка подписок по ${sortBy}`);
-    const items = Array.from(subscriptionsList.children);
-
-    items.sort((a, b) => {
-        let comparison = 0;
-        if (sortBy === 'next_payment') {
-            // Извлекаем дату из элемента
-            const aDateText = a.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1];
-            const bDateText = b.querySelector('.subscription-next-payment .field-content').textContent.split(': ')[1];
-
-            // Преобразуем текст даты в объект Date
-            const aDate = parseDateString(aDateText);
-            const bDate = parseDateString(bDateText);
-
-            // Сравниваем даты
-            comparison = aDate - bDate;
-        } else if (sortBy === 'amount') {
-            const aAmount = parseFloat(a.querySelector('.subscription-amount .field-content').textContent);
-            const bAmount = parseFloat(b.querySelector('.subscription-amount .field-content').textContent);
-            comparison = bAmount - aAmount;
-        }
-
-        return sortOrder[sortBy] === 'asc' ? comparison : -comparison;
-    });
-
-    items.forEach(item => subscriptionsList.appendChild(item));
-
-    // Переключаем порядок сортировки
-    sortOrder[sortBy] = sortOrder[sortBy] === 'asc' ? 'desc' : 'asc';
-
-    updateSortButtonsState(sortBy);
-}
-
-function parseDateString(dateString) {
-    const [day, month] = dateString.split(' ');
-    const monthIndex = [
-        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-    ].indexOf(month);
-
-    const now = new Date();
-    const year = now.getFullYear();
-    const date = new Date(year, monthIndex, parseInt(day));
-
-    // Если дата уже прошла, предполагаем, что это следующий год
-    if (date < now) {
-        date.setFullYear(year + 1);
-    }
-
-    return date;
-}
-
-function updateSortButtonsState(activeSortBy) {
-    document.querySelectorAll('.sort-button').forEach(button => {
-        const sortBy = button.dataset.sort;
-        button.classList.toggle('active', sortBy === activeSortBy);
-        button.textContent = `Сортировать по ${sortBy === 'amount' ? 'сумме' : 'дате'} ${sortOrder[sortBy] === 'asc' ? '↑' : '↓'}`;
-    });
-}
 function showSubscriptionMenu(subscriptionId) {
     const menu = document.getElementById(`menu-${subscriptionId}`);
     const allMenus = document.querySelectorAll('.subscription-menu');
@@ -590,7 +502,6 @@ function toggleAddSubscriptionForm(show) {
         hideAllSections();
         addSubscriptionForm.style.display = 'block';
         subscriptionsList.style.display = 'none';
-        toggleSortButtonsContainer(false);
         resetForm();
         currentSlide = 1;
         showSlide(currentSlide);
@@ -626,7 +537,6 @@ function toggleAddSubscriptionForm(show) {
             complete: function() {
                 addSubscriptionForm.style.display = 'none';
                 subscriptionsList.style.display = 'block';
-                toggleSortButtonsContainer(true);
                 resetForm();
                 toggleNavbar(true);
 
@@ -831,11 +741,15 @@ function initNavbar() {
     const navItems = document.querySelectorAll('.nav-item');
     const navIndicator = document.querySelector('.nav-indicator');
     const navActions = {
-        'navSubscriptions': () => {
+        'navSubscriptions': async () => {
             debugLog('Нажата кнопка подписок');
-            fetchSubscriptions().then((subscriptions) => {
-                toggleSortButtonsContainer(subscriptions.length > 0);
-            });
+            try {
+                await updateSubscriptionsList();
+                // Здесь можно добавить дополнительную логику, если нужно
+            } catch (error) {
+                console.error('Error updating subscriptions list:', error);
+                debugLog(`Ошибка при обновлении списка подписок: ${error.message}`);
+            }
         },
         'navAddSubscription': () => {
             debugLog('Нажата кнопка добавления подписки');
@@ -1208,9 +1122,6 @@ function showProfilePage() {
         elements.profileLink.style.display = 'none';
     }
 
-    if (elements.sortButtonsContainer) {
-        elements.sortButtonsContainer.style.display = 'none';
-    }
     // Скрываем нижнюю навигацию
     toggleNavbar(false);
 
@@ -1248,7 +1159,6 @@ async function showCalendar(event) {
     if (event) event.preventDefault();
     hideAllSections();
     elements.calendarView.style.display = 'block';
-    toggleSortButtonsContainer(false);
     debugLog('Начало отображения календаря');
     await loadUserSubscriptions();
     renderCalendar();
@@ -1274,9 +1184,6 @@ function hideAllSections() {
     if (backButton) {
         backButton.style.display = 'none';
     }
-
-    // Скрываем контейнер сортировки
-    toggleSortButtonsContainer(false);
 }
 
 function renderCalendar() {
@@ -1376,7 +1283,6 @@ function handleBackButton() {
             try {
                 await updateSubscriptionsList();
                 const subscriptions = await fetchSubscriptions();
-                toggleSortButtonsContainer(subscriptions.length > 0);
             } catch (error) {
                 console.error('Error updating subscriptions:', error);
                 debugLog(`Ошибка при обновлении подписок: ${error.message}`);
@@ -1405,48 +1311,6 @@ async function loadUserSubscriptions() {
         console.error('Error loading subscriptions:', error);
     }
     debugLog('Завершение загрузки подписок пользователя');
-}
-
-function toggleSortButtonsContainer(show) {
-    debugLog(`Вызов toggleSortButtonsContainer с параметром show: ${show}`);
-    if (elements.sortButtonsContainer) {
-        const isCurrentlyVisible = getComputedStyle(elements.sortButtonsContainer).display !== 'none';
-        debugLog(`Текущее состояние видимости контейнера: ${isCurrentlyVisible}`);
-
-        if (show !== isCurrentlyVisible) {
-            if (show) {
-                debugLog('Отображаем контейнер сортировки');
-                elements.sortButtonsContainer.style.display = 'flex';
-                elements.sortButtonsContainer.style.opacity = '0';
-
-                anime({
-                    targets: elements.sortButtonsContainer,
-                    opacity: [0, 1],
-                    translateY: [20, 0],
-                    duration: 500,
-                    easing: 'easeOutCubic'
-                });
-            } else {
-                debugLog('Скрываем контейнер сортировки');
-                anime({
-                    targets: elements.sortButtonsContainer,
-                    opacity: [1, 0],
-                    translateY: [0, 20],
-                    duration: 500,
-                    easing: 'easeInCubic',
-                    complete: function() {
-                        elements.sortButtonsContainer.style.display = 'none';
-                    }
-                });
-            }
-        } else {
-            debugLog(`Состояние не изменилось (${show}), но применяем его принудительно`);
-            elements.sortButtonsContainer.style.display = show ? 'flex' : 'none';
-            elements.sortButtonsContainer.style.opacity = show ? '1' : '0';
-        }
-    } else {
-        debugLog('Элемент sortButtonsContainer не найден');
-    }
 }
 
 // Инициализация приложения при загрузке

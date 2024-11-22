@@ -203,53 +203,6 @@ h1 {
     width: 0;
     transition: width 0.3s ease;
 }
-/* Сортировка */
-.sort-buttons-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 30px; /* Добавляем отступ сверху */
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: var(--tg-theme-secondary-bg-color);
-    border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    will-change: opacity, transform;
-}
-
-.sort-label {
-    margin-right: 10px;
-    font-weight: bold;
-    color: #333;
-}
-
-.sort-button {
-    background-color: var(--tg-theme-bg-color);
-    color: var(--tg-theme-text-color);
-    border: none;
-    padding: 10px 15px;
-    margin: 0 5px;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-}
-
-.sort-button:hover {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
-}
-
-.sort-button.active {
-    background-color: var(--tg-theme-button-color);
-    color: var(--tg-theme-button-text-color);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.sort-button i {
-    margin-right: 5px;
-}
 
 /* Формы */
 .form-group {
