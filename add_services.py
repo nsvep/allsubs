@@ -1,5 +1,19 @@
-from app import app, db, Category, Service
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@dbvsesub-nsvep.db-msk0.amvera.tech/vsesub'
+db = SQLAlchemy(app)
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    is_custom = db.Column(db.Boolean, default=False)
 
 def add_categories_and_services():
     with app.app_context():
@@ -47,7 +61,6 @@ def add_categories_and_services():
         db.session.commit()
 
         print("Категории и сервисы успешно добавлены в базу данных.")
-
 
 if __name__ == "__main__":
     add_categories_and_services()
