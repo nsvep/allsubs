@@ -1,12 +1,8 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
-
-TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = "https://192.168.0.107:5000"

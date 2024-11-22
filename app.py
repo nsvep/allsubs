@@ -10,16 +10,12 @@ from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
 import logging
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@localhost/allsub3'
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
