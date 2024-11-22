@@ -1282,7 +1282,6 @@ function handleBackButton() {
             profileSection.style.display = 'none';
             try {
                 await updateSubscriptionsList();
-                const subscriptions = await fetchSubscriptions();
             } catch (error) {
                 console.error('Error updating subscriptions:', error);
                 debugLog(`Ошибка при обновлении подписок: ${error.message}`);
