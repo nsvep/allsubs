@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@amvera-nsvep-cnpg-vsepodpiski-rw/allsub'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@amvera-nsvep-cnpg-vsepodpiski-rw/vsesub'
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
