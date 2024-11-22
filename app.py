@@ -24,6 +24,7 @@ migrate = Migrate(app, db)
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     telegram_id = db.Column(db.BigInteger, unique=True, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(pytz.timezone('Europe/Moscow')))
     first_name = db.Column(db.String(50), nullable=False)
     last_name = db.Column(db.String(50))
     username = db.Column(db.String(50))
