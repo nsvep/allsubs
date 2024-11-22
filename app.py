@@ -10,12 +10,16 @@ from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
 import logging
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@localhost/allsub3'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI')
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
@@ -497,6 +501,6 @@ if __name__ == '__main__':
             print(f"Error in update_subscription_payments: {e}")
 
     try:
-        app.run(debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=True)
     except KeyboardInterrupt:
         print("Flask application stopped by user")

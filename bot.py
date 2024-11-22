@@ -1,11 +1,15 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import requests
+from dotenv import load_dotenv
+import os
 
-TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
+load_dotenv()
+
+TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    url = "https://e6ad-95-25-22-90.ngrok-free.app"
+    url = "https://192.168.0.107:5000"
     keyboard = [
         [InlineKeyboardButton("Open", web_app=WebAppInfo(url=url))]
     ]
@@ -15,7 +19,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def my_subs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_id = update.effective_user.id
-    url = f'https://e6ad-95-25-22-90.ngrok-free.app/get_user_subscriptions_for_bot/{telegram_id}'
+    url = f'https://192.168.0.107:5000/get_user_subscriptions_for_bot/{telegram_id}'
     print(f"Sending request to: {url}")  # Отладочное сообщение
 
     try:
