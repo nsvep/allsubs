@@ -82,6 +82,10 @@ async function init() {
     debugLog('Инициализация приложения начата');
     animateLoadingScreen();
 
+    if (elements.sortButtonsContainer) {
+        elements.sortButtonsContainer.style.display = 'none';
+    }
+
     const telegramUser = tg.initDataUnsafe?.user;
     if (!telegramUser) {
         debugLog('Ошибка: данные пользователя Telegram не найдены');
@@ -255,16 +259,17 @@ async function fetchSubscriptions() {
 }
 
 // Отображение списка подписок
-function displaySubscriptions(subscriptions) {
+async function displaySubscriptions(subscriptions) {
     debugLog('Начало отображения подписок');
     elements.subscriptions.innerHTML = '';
 
     if (subscriptions.length === 0) {
         displayNoSubscriptions();
     } else {
-        displaySubscriptionsList(subscriptions);
+        await displaySubscriptionsList(subscriptions);
     }
 
+    // Принудительно отображаем или скрываем контейнер сортировки
     toggleSortButtonsContainer(subscriptions.length > 0);
 }
 
@@ -295,14 +300,14 @@ function createNoSubscriptionsElement() {
     return noSubscriptionsElement;
 }
 
-function displaySubscriptionsList(subscriptions) {
+async function displaySubscriptionsList(subscriptions) {
     const subscriptionsList = document.createElement('div');
     subscriptionsList.className = 'subscriptions-list';
 
-    subscriptions.forEach(sub => {
-        const subElement = createSubscriptionElement(sub);
+    for (const sub of subscriptions) {
+        const subElement = await createSubscriptionElement(sub);
         subscriptionsList.appendChild(subElement);
-    });
+    }
 
     elements.subscriptions.appendChild(subscriptionsList);
     addSortingFunctionality(subscriptionsList);
@@ -1389,33 +1394,44 @@ async function loadUserSubscriptions() {
 }
 
 function toggleSortButtonsContainer(show) {
+    debugLog(`Вызов toggleSortButtonsContainer с параметром show: ${show}`);
     if (elements.sortButtonsContainer) {
-        if (show) {
-            // Сначала делаем контейнер видимым, но прозрачным
-            elements.sortButtonsContainer.style.display = 'flex';
-            elements.sortButtonsContainer.style.opacity = '0';
+        const isCurrentlyVisible = getComputedStyle(elements.sortButtonsContainer).display !== 'none';
+        debugLog(`Текущее состояние видимости контейнера: ${isCurrentlyVisible}`);
 
-            // Затем анимируем его появление
-            anime({
-                targets: elements.sortButtonsContainer,
-                opacity: [0, 1],
-                translateY: [20, 0],
-                duration: 500,
-                easing: 'easeOutCubic'
-            });
+        if (show !== isCurrentlyVisible) {
+            if (show) {
+                debugLog('Отображаем контейнер сортировки');
+                elements.sortButtonsContainer.style.display = 'flex';
+                elements.sortButtonsContainer.style.opacity = '0';
+
+                anime({
+                    targets: elements.sortButtonsContainer,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    duration: 500,
+                    easing: 'easeOutCubic'
+                });
+            } else {
+                debugLog('Скрываем контейнер сортировки');
+                anime({
+                    targets: elements.sortButtonsContainer,
+                    opacity: [1, 0],
+                    translateY: [0, 20],
+                    duration: 500,
+                    easing: 'easeInCubic',
+                    complete: function() {
+                        elements.sortButtonsContainer.style.display = 'none';
+                    }
+                });
+            }
         } else {
-            // Анимируем исчезновение
-            anime({
-                targets: elements.sortButtonsContainer,
-                opacity: [1, 0],
-                translateY: [0, 20],
-                duration: 500,
-                easing: 'easeInCubic',
-                complete: function() {
-                    elements.sortButtonsContainer.style.display = 'none';
-                }
-            });
+            debugLog(`Состояние не изменилось (${show}), но применяем его принудительно`);
+            elements.sortButtonsContainer.style.display = show ? 'flex' : 'none';
+            elements.sortButtonsContainer.style.opacity = show ? '1' : '0';
         }
+    } else {
+        debugLog('Элемент sortButtonsContainer не найден');
     }
 }
 
