@@ -5,7 +5,7 @@ import requests
 TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    url = "https://a24bb175eacee1.lhr.life/"
+    url = "https://miniapp-nsvep.amvera.io/"
     keyboard = [
         [InlineKeyboardButton("Open", web_app=WebAppInfo(url=url))]
     ]
@@ -15,7 +15,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def my_subs(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     telegram_id = update.effective_user.id
-    url = f'https://a24bb175eacee1.lhr.life/get_user_subscriptions_for_bot/{telegram_id}'
+    url = f'https://miniapp-nsvep.amvera.io/get_user_subscriptions_for_bot/{telegram_id}'
     print(f"Sending request to: {url}")  # Отладочное сообщение
 
     try:
