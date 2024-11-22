@@ -37,7 +37,8 @@ const elements = {
     calendarDays: document.getElementById('calendarDays'),
     prevMonth: document.getElementById('prevMonth'),
     nextMonth: document.getElementById('nextMonth'),
-    eventList: document.getElementById('eventList')
+    eventList: document.getElementById('eventList'),
+    sortButtonsContainer: document.getElementById('sort-buttons-container')
 
 };
 
@@ -263,6 +264,8 @@ function displaySubscriptions(subscriptions) {
     } else {
         displaySubscriptionsList(subscriptions);
     }
+
+    toggleSortButtonsContainer(subscriptions.length > 0);
 }
 
 function displayNoSubscriptions() {
@@ -270,6 +273,9 @@ function displayNoSubscriptions() {
     elements.subscriptions.appendChild(noSubscriptionsElement);
     animateNoSubscriptions();
     debugLog('Отображено сообщение об отсутствии подписок с анимацией');
+
+    // Скрываем контейнер сортировки, так как нет подписок для сортировки
+    toggleSortButtonsContainer(false);
 }
 
 function createNoSubscriptionsElement() {
@@ -345,12 +351,15 @@ function createField(className, icon, content) {
 
 function addSortingFunctionality(subscriptionsList) {
     const sortButtons = `
-        <div class="sort-buttons">
-            <button class="sort-button" data-sort="next_payment">Сортировать по дате</button>
-            <button class="sort-button" data-sort="amount">Сортировать по сумме</button>
-        </div>
+        <button class="sort-button" data-sort="next_payment">
+            <i class="fas fa-calendar-alt"></i> По дате
+        </button>
+        <button class="sort-button" data-sort="amount">
+            <i class="fas fa-coins"></i> По сумме
+        </button>
     `;
-    elements.subscriptions.insertAdjacentHTML('beforeend', sortButtons);
+    const sortButtonsContainer = document.getElementById('sort-buttons-container');
+    sortButtonsContainer.innerHTML = sortButtons;
 
     document.querySelectorAll('.sort-button').forEach(button => {
         button.addEventListener('click', () => sortSubscriptions(button.dataset.sort, subscriptionsList));
@@ -574,6 +583,7 @@ function toggleAddSubscriptionForm(show) {
         hideAllSections();
         addSubscriptionForm.style.display = 'block';
         subscriptionsList.style.display = 'none';
+        toggleSortButtonsContainer(false);
         resetForm();
         currentSlide = 1;
         showSlide(currentSlide);
@@ -609,6 +619,7 @@ function toggleAddSubscriptionForm(show) {
             complete: function() {
                 addSubscriptionForm.style.display = 'none';
                 subscriptionsList.style.display = 'block';
+                toggleSortButtonsContainer(true);
                 resetForm();
                 toggleNavbar(true);
 
@@ -813,7 +824,12 @@ function initNavbar() {
     const navItems = document.querySelectorAll('.nav-item');
     const navIndicator = document.querySelector('.nav-indicator');
     const navActions = {
-        'navSubscriptions': fetchSubscriptions,
+        'navSubscriptions': () => {
+            debugLog('Нажата кнопка подписок');
+            fetchSubscriptions().then((subscriptions) => {
+                toggleSortButtonsContainer(subscriptions.length > 0);
+            });
+        },
         'navAddSubscription': () => {
             debugLog('Нажата кнопка добавления подписки');
             hideAllSections();
@@ -1185,6 +1201,9 @@ function showProfilePage() {
         elements.profileLink.style.display = 'none';
     }
 
+    if (elements.sortButtonsContainer) {
+        elements.sortButtonsContainer.style.display = 'none';
+    }
     // Скрываем нижнюю навигацию
     toggleNavbar(false);
 
@@ -1215,6 +1234,7 @@ async function showCalendar(event) {
     if (event) event.preventDefault();
     hideAllSections();
     elements.calendarView.style.display = 'block';
+    toggleSortButtonsContainer(false);
     debugLog('Начало отображения календаря');
     await loadUserSubscriptions();
     renderCalendar();
@@ -1240,6 +1260,9 @@ function hideAllSections() {
     if (backButton) {
         backButton.style.display = 'none';
     }
+
+    // Скрываем контейнер сортировки
+    toggleSortButtonsContainer(false);
 }
 
 function renderCalendar() {
@@ -1336,7 +1359,9 @@ function handleBackButton() {
         easing: 'easeInCubic',
         complete: function() {
             profileSection.style.display = 'none';
-            fetchSubscriptions();
+            fetchSubscriptions().then((subscriptions) => {
+                toggleSortButtonsContainer(subscriptions.length > 0);
+            });
             toggleNavbar(true);
             document.querySelector('.back-button').style.display = 'none';
         }
@@ -1362,6 +1387,38 @@ async function loadUserSubscriptions() {
     }
     debugLog('Завершение загрузки подписок пользователя');
 }
+
+function toggleSortButtonsContainer(show) {
+    if (elements.sortButtonsContainer) {
+        if (show) {
+            // Сначала делаем контейнер видимым, но прозрачным
+            elements.sortButtonsContainer.style.display = 'flex';
+            elements.sortButtonsContainer.style.opacity = '0';
+
+            // Затем анимируем его появление
+            anime({
+                targets: elements.sortButtonsContainer,
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 500,
+                easing: 'easeOutCubic'
+            });
+        } else {
+            // Анимируем исчезновение
+            anime({
+                targets: elements.sortButtonsContainer,
+                opacity: [1, 0],
+                translateY: [0, 20],
+                duration: 500,
+                easing: 'easeInCubic',
+                complete: function() {
+                    elements.sortButtonsContainer.style.display = 'none';
+                }
+            });
+        }
+    }
+}
+
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     init().catch(error => console.error('Error in init:', error));
