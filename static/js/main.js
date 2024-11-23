@@ -824,7 +824,9 @@ function showDebugOutputForAdmin(userId) {
     const debugOutput = document.getElementById('debug-output');
     if (debugOutput && userId === 1) {
         debugOutput.style.display = 'block';
+        debugLog('Debug output shown for admin');
         initDebugWindow();
+        initDebugSendButton();  // Добавим эту строку
     }
 }
 
@@ -1314,6 +1316,7 @@ function initDebugWindow() {
     const toggleButton = document.getElementById('toggle-debug');
     const clearButton = document.getElementById('clear-debug');
     const debugContent = document.getElementById('debug-content');
+    const sendDebugButton = document.getElementById('send-debug');
 
     // Сворачивание/разворачивание окна
     toggleButton.addEventListener('click', () => {
@@ -1323,6 +1326,50 @@ function initDebugWindow() {
 
     // Очистка содержимого
     clearButton.addEventListener('click', clearDebugOutput);
+}
+
+async function sendDebugLog() {
+    debugLog('sendDebugLog function called');
+    const debugContent = document.getElementById('debug-content').innerText;
+    debugLog('Preparing to send debug content');
+    try {
+        debugLog('Sending POST request to /api/send_debug_log');
+        const response = await fetch('/api/send_debug_log', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                debug_log: debugContent
+            }),
+        });
+        debugLog(`Response received: status ${response.status}`);
+        const data = await response.json();
+        debugLog(`Response data: ${JSON.stringify(data)}`);
+        if (data.status === 'success') {
+            debugLog('Debug log sent successfully');
+            alert('Debug log sent successfully');
+        } else {
+            debugLog(`Failed to send debug log: ${data.error || 'Unknown error'}`);
+            alert('Failed to send debug log: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        debugLog(`Error sending debug log: ${error.message}`);
+        console.error('Error sending debug log:', error);
+        alert('Error sending debug log: ' + error.message);
+    }
+}
+
+function initDebugSendButton() {
+    debugLog('Initializing debug send button');
+    const sendDebugButton = document.getElementById('send-debug');
+    if (sendDebugButton) {
+        debugLog('Debug send button found, adding click event listener');
+        sendDebugButton.addEventListener('click', sendDebugLog);
+    } else {
+        debugLog('Debug send button not found');
+    }
 }
 
 // Инициализация приложения при загрузке

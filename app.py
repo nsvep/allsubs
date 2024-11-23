@@ -10,6 +10,10 @@ from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
 import logging
+import requests
+
+TELEGRAM_BOT_TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
+ADMIN_CHAT_ID = 50274860  # Здесь нужно указать chat_id администратора
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -476,6 +480,43 @@ def calendar_events():
         return jsonify(events)
     except Exception as e:
         app.logger.error(f"Error in calendar_events: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/api/send_debug_log', methods=['POST'])
+def send_debug_log():
+    try:
+        user_id = request.json.get('user_id')
+        debug_log = request.json.get('debug_log')
+
+        # Проверяем, является ли пользователь администратором
+        user = User.query.get(user_id)
+        if not user or user.id != 1:  # Предполагаем, что админ имеет id 1
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Если ADMIN_CHAT_ID не установлен, получаем его из базы данных
+        global ADMIN_CHAT_ID
+        if ADMIN_CHAT_ID is None:
+            admin_user = User.query.get(1)
+            if admin_user:
+                ADMIN_CHAT_ID = admin_user.telegram_id
+            else:
+                return jsonify({"error": "Admin user not found"}), 500
+
+        # Отправляем сообщение через Telegram API
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": ADMIN_CHAT_ID,
+            "text": f"Debug Log:\n\n{debug_log}"
+        }
+        response = requests.post(url, json=payload)
+
+        if response.status_code == 200:
+            return jsonify({"status": "success"}), 200
+        else:
+            return jsonify({"error": "Failed to send message"}), 500
+
+    except Exception as e:
+        app.logger.error(f"Error in send_debug_log: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
 import atexit

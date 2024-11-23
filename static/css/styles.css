@@ -518,6 +518,21 @@ h1 {
     opacity: 0.9;
 }
 
+#send-debug {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 14px;
+}
+
+#send-debug:hover {
+    opacity: 0.9;
+}
+
 /* Меню подписки */
 .subscription-actions {
     position: relative;
