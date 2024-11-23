@@ -824,10 +824,7 @@ function showDebugOutputForAdmin(userId) {
     const debugOutput = document.getElementById('debug-output');
     if (debugOutput && userId === 1) {
         debugOutput.style.display = 'block';
-        const clearButton = document.getElementById('clear-debug');
-        if (clearButton) {
-            clearButton.addEventListener('click', clearDebugOutput);
-        }
+        initDebugWindow();
     }
 }
 
@@ -1310,6 +1307,22 @@ async function loadUserSubscriptions() {
         console.error('Error loading subscriptions:', error);
     }
     debugLog('Завершение загрузки подписок пользователя');
+}
+
+function initDebugWindow() {
+    const debugWindow = document.getElementById('debug-output');
+    const toggleButton = document.getElementById('toggle-debug');
+    const clearButton = document.getElementById('clear-debug');
+    const debugContent = document.getElementById('debug-content');
+
+    // Сворачивание/разворачивание окна
+    toggleButton.addEventListener('click', () => {
+        debugContent.style.display = debugContent.style.display === 'none' ? 'block' : 'none';
+        toggleButton.textContent = debugContent.style.display === 'none' ? '+' : '_';
+    });
+
+    // Очистка содержимого
+    clearButton.addEventListener('click', clearDebugOutput);
 }
 
 // Инициализация приложения при загрузке
