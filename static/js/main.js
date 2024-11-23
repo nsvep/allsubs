@@ -47,6 +47,7 @@ function closeSubscriptionForm() {
 function animateLoadingScreen() {
 
     tg.expand();
+    tg.HapticFeedback.impactOccurred('medium');
     const loadingScreen = document.getElementById('loading-screen');
     const circle = loadingScreen.querySelector('circle');
 
@@ -445,6 +446,7 @@ async function saveSubscription(subscriptionId = null) {
         const result = await response.json();
 
         if (response.ok) {
+            tg.HapticFeedback.impactOccurred('medium');
             debugLog('Подписка успешно сохранена');
             toggleAddSubscriptionForm(false);
             await updateSubscriptionsList();
