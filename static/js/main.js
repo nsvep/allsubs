@@ -642,7 +642,11 @@ function isValidDate(dateString) {
     const date = new Date(dateString);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    return date >= today;
+
+    const fiveYearsFromNow = new Date(today);
+    fiveYearsFromNow.setFullYear(today.getFullYear() + 5);
+
+    return date >= today && date <= fiveYearsFromNow;
 }
 
 function isValidAmount(amountString) {
