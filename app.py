@@ -108,6 +108,7 @@ def update_subscription_payments():
                 # Устанавливаем next_payment_date, если она не установлена
                 if not subscription.next_payment_date:
                     subscription.next_payment_date = subscription.start_date
+                    print(f"  Setting initial next_payment_date to: {subscription.next_payment_date}")
 
                 # Создаем платежи для всех прошедших дат до сегодняшнего дня
                 while subscription.next_payment_date and subscription.next_payment_date <= today:
@@ -131,6 +132,7 @@ def update_subscription_payments():
                     print(f"  Next payment date set to: {subscription.next_payment_date}")
 
                 db.session.commit()
+                print(f"  Subscription {subscription.id} processed successfully")
             except Exception as e:
                 print(f"Error processing subscription {subscription.id}: {e}")
                 db.session.rollback()
@@ -320,33 +322,24 @@ def add_subscription():
             category_id=category_id,
             start_date=start_date,
             amount=float(data['amount']),
+            total_spent=0,
             currency=data['currency'],
             bank=data.get('bank'),
             card_last_4=data.get('card_last_4'),
             send_notifications=data.get('send_notifications', False),
             next_payment_date=start_date,
-            last_payment_date=None  # Устанавливаем в None, так как платеж еще не совершен
+            last_payment_date=None
         )
 
         db.session.add(new_sub)
         db.session.commit()
 
-        # Создаем первый платеж
-        payment = Payment(
-            subscription_id=new_sub.id,
-            payment_date=start_date,
-            amount=new_sub.amount
-        )
-        db.session.add(payment)
-        new_sub.last_payment_date = start_date
-        new_sub.total_spent = new_sub.amount
-        db.session.commit()
-
         return jsonify({"status": "success", "id": new_sub.id})
 
     except Exception as e:
+        app.logger.error(f"Error in add_subscription: {str(e)}")
         db.session.rollback()
-        return jsonify({"status": "error", "message": str(e)}), 400
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/delete_subscription/<int:subscription_id>', methods=['DELETE'])
 def delete_subscription(subscription_id):
