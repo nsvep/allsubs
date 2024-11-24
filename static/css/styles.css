@@ -582,6 +582,11 @@ h1 {
     text-align: center;
 }
 
+.subscription-next-payment {
+    color: #007bff;
+    font-weight: bold;
+}
+
 /* Добавим разделитель между кнопками */
 .subscription-menu button:not(:last-child) {
     border-bottom: 1px solid var(--tg-theme-hint-color);

@@ -310,7 +310,7 @@ function createSubscriptionElement(sub) {
     subElement.className = 'subscription-item';
     subElement.setAttribute('data-id', sub.id);
 
-    const nextPaymentDate = new Date(sub.start_date);
+    const nextPaymentDate = sub.next_payment_date ? new Date(sub.next_payment_date) : new Date(sub.start_date);
     const formattedDate = nextPaymentDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
     const amountClass = sub.amount > 1000 ? 'subscription-amount high' : 'subscription-amount';
 
@@ -332,6 +332,8 @@ function createSubscriptionElement(sub) {
         ${sub.discount ? createField('subscription-discount', 'fas fa-percent', `Скидка: ${sub.discount}%`) : ''}
         ${sub.bank ? createField('subscription-bank', 'fas fa-university', `Банк: ${sub.bank}`) : ''}
         ${sub.card_last_4 ? createField('subscription-card', 'fas fa-credit-card', `Карта: *${sub.card_last_4}`) : ''}
+        ${createField('subscription-total-spent', 'fas fa-chart-line', `Всего потрачено: ${sub.total_spent} ${sub.currency}`)}
+        ${sub.send_notifications ? createField('subscription-notifications', 'fas fa-bell', 'Уведомления включены') : ''}
     `;
 
     return subElement;

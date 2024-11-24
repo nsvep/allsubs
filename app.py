@@ -41,6 +41,7 @@ class Subscription(db.Model):
     service_name = db.Column(db.String(100), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
+    next_payment_date = db.Column(db.Date)
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), nullable=False)
     discount = db.Column(db.Float)
@@ -99,30 +100,35 @@ def update_subscription_payments():
             try:
                 print(f"Processing subscription ID: {subscription.id}")
 
+                # Проверяем и сбрасываем last_payment_date, если она в будущем
                 if subscription.last_payment_date and subscription.last_payment_date > today:
                     print(f"  Resetting future last_payment_date from {subscription.last_payment_date} to None")
                     subscription.last_payment_date = None
 
-                next_payment_date = subscription.last_payment_date or subscription.start_date
-                if next_payment_date < subscription.start_date:
-                    next_payment_date = subscription.start_date
+                # Устанавливаем next_payment_date, если она не установлена
+                if not subscription.next_payment_date:
+                    subscription.next_payment_date = subscription.start_date
 
-                while next_payment_date <= today:
+                # Создаем платежи для всех прошедших дат до сегодняшнего дня
+                while subscription.next_payment_date and subscription.next_payment_date <= today:
                     existing_payment = Payment.query.filter_by(
                         subscription_id=subscription.id,
-                        payment_date=next_payment_date
+                        payment_date=subscription.next_payment_date
                     ).first()
 
                     if not existing_payment:
                         payment = Payment(subscription_id=subscription.id,
-                                          payment_date=next_payment_date,
+                                          payment_date=subscription.next_payment_date,
                                           amount=subscription.amount)
                         db.session.add(payment)
                         subscription.total_spent += subscription.amount
-                        print(f"  Created payment for date: {next_payment_date}")
+                        print(f"  Created payment for date: {subscription.next_payment_date}")
 
-                    subscription.last_payment_date = next_payment_date
-                    next_payment_date += relativedelta(months=1)
+                    subscription.last_payment_date = subscription.next_payment_date
+
+                    # Обновляем next_payment_date
+                    subscription.next_payment_date += relativedelta(months=1)
+                    print(f"  Next payment date set to: {subscription.next_payment_date}")
 
                 db.session.commit()
             except Exception as e:
@@ -135,7 +141,7 @@ def update_subscription_payments():
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
 scheduler.add_job(
     func=update_subscription_payments,
-    trigger=CronTrigger(hour=1, minute=28),
+    trigger=CronTrigger(hour=0, minute=1),
     id='update_subscription_payments_job',
     name='Update subscription payments every day at 00:01',
     replace_existing=True)
@@ -207,9 +213,17 @@ def get_subscriptions(user_id):
         'currency': sub.currency,
         'discount': sub.discount,
         'bank': sub.bank,
-        'card_last_4': sub.card_last_4
+        'card_last_4': sub.card_last_4,
+        'next_payment_date': sub.next_payment_date.strftime('%Y-%m-%d') if sub.next_payment_date else None,
+        'last_payment_date': sub.last_payment_date.strftime('%Y-%m-%d') if sub.last_payment_date else None,
+        'total_spent': sub.total_spent,
+        'send_notifications': sub.send_notifications
     } for sub in subscriptions]
-    app.logger.info(f"Active subscriptions data: {result}")
+
+    # Сортировка по дате следующего платежа
+    result.sort(key=lambda x: x['next_payment_date'] or '9999-12-31')
+
+    app.logger.info(f"Active subscriptions data for user {user_id}: {result}")
     return jsonify(result)
 
 
@@ -310,6 +324,7 @@ def add_subscription():
             bank=data.get('bank'),
             card_last_4=data.get('card_last_4'),
             send_notifications=data.get('send_notifications', False),
+            next_payment_date=start_date,
             last_payment_date=None  # Устанавливаем в None, так как платеж еще не совершен
         )
 
