@@ -1030,10 +1030,13 @@ async function editSubscription(subscriptionId) {
                 debugLog(`Ответ сервера: ${JSON.stringify(result)}`);
                 console.log('Server response:', result);
                 await updateSubscriptionsList();
-                tg.showPopup({
-                    title: 'Успех',
-                    message: 'Подписка успешно обновлена',
-                    buttons: [{ type: 'close' }]
+                await showAlert({
+                    icon: 'success',
+                    title: 'Подписка обновлена',
+                    text: 'Ваши изменения успешно сохранены',
+                    timer: 2500,
+                    timerProgressBar: true,
+                    showConfirmButton: false
                 });
             } else {
                 throw new Error('Failed to update subscription');
