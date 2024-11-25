@@ -12,6 +12,9 @@ from flask_cors import CORS
 import logging
 import requests
 from sqlalchemy import or_
+from flask_admin import Admin, AdminIndexView
+from flask_admin.contrib.sqla import ModelView
+from flask_admin.model import typefmt
 
 TELEGRAM_BOT_TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 ADMIN_CHAT_ID = 50274860  # Здесь нужно указать chat_id администратора
@@ -20,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@dbvsesub-nsvep.db-msk0.amvera.tech/vsesub'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@dbvsesub-nsvep.db-msk0.amvera.tech/vsesub?options=-c%20timezone=Europe/Moscow'
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
@@ -74,6 +77,9 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
 
+    def __str__(self):
+        return self.name
+
     def to_dict(self):
         return {'id': self.id, 'name': self.name}
 
@@ -87,8 +93,112 @@ class Service(db.Model):
 
     def to_dict(self):
         return {'id': self.id, 'name': self.name, 'category_id': self.category_id, 'is_custom': self.is_custom}
+###АДМИНКА
+def date_format(view, value):
+    return value.strftime('%d.%m.%Y %H:%M:%S')
 
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        # Здесь вы можете добавить проверку аутентификации
+        return True  # Замените на вашу логику аутентификации
 
+class BaseModelView(ModelView):
+    page_size = 50  # Количество элементов на странице
+    can_export = True  # Разрешить экспорт данных
+    can_view_details = True  # Добавить страницу с деталями
+    column_default_sort = ('id', True)  # Сортировка по умолчанию
+
+    column_type_formatters = {
+        datetime: date_format
+    }
+
+# Создаем пользовательские представления для моделей
+class UserView(BaseModelView):
+    column_exclude_list = ['created_at']
+    column_searchable_list = ['telegram_id', 'first_name', 'last_name', 'username']
+    column_filters = ['created_at', 'telegram_id']
+    column_labels = {
+        'id': 'ID',
+        'telegram_id': 'Telegram ID',
+        'first_name': 'Имя',
+        'last_name': 'Фамилия',
+        'username': 'Имя пользователя',
+        'created_at': 'Дата создания'
+    }
+    column_list = ['id', 'telegram_id', 'first_name', 'last_name', 'username', 'created_at']
+    column_default_sort = ('id', True)  # Сортировка по ID по умолчанию, по убыванию
+
+    def _telegram_id_formatter(view, context, model, name):
+        return f"{model.telegram_id}"
+
+    column_formatters = {
+        'telegram_id': _telegram_id_formatter
+    }
+
+class SubscriptionView(BaseModelView):
+    column_exclude_list = ['created_at']
+    column_searchable_list = ['service_name', 'user.telegram_id', 'category.name']
+    column_filters = ['start_date', 'next_payment_date', 'amount', 'is_archived', 'user.telegram_id', 'category.name']
+    column_labels = {
+        'user.id': 'ID пользователя',
+        'user.telegram_id': 'Telegram ID',
+        'service_name': 'Сервис',
+        'category.name': 'Категория',
+        'start_date': 'Дата начала',
+        'next_payment_date': 'Следующая оплата',
+        'amount': 'Сумма',
+        'currency': 'Валюта',
+        'is_archived': 'Архивирован'
+    }
+    column_list = ['id', 'user.id', 'user.telegram_id', 'service_name', 'category.name', 'start_date', 'next_payment_date', 'amount', 'currency', 'is_archived']
+
+    def _user_formatter(view, context, model, name):
+        if model.user:
+            return f"{model.user.id} (Telegram ID: {model.user.telegram_id})"
+        return ""
+
+    column_formatters = {
+        'user.id': _user_formatter,
+        'category.name': lambda v, c, m, p: m.category.name if m.category else ""
+    }
+
+class CategoryView(BaseModelView):
+    column_searchable_list = ['name']
+    column_labels = {'name': 'Название категории'}
+
+class ServiceView(BaseModelView):
+    column_searchable_list = ['name', 'category.name']
+    column_filters = ['category.name', 'is_custom']
+    column_labels = {
+        'name': 'Название сервиса',
+        'category.name': 'Категория',
+        'is_custom': 'Пользовательский'
+    }
+    column_list = ['id', 'name', 'category.name', 'is_custom']
+
+    column_formatters = {
+        'category.name': lambda v, c, m, p: m.category.name if m.category else ""
+    }
+
+class PaymentView(BaseModelView):
+    column_searchable_list = ['subscription_id', 'payment_date']
+    column_filters = ['payment_date', 'amount']
+    column_labels = {
+        'user': 'Пользователь',
+        'subscription': 'Подписка',
+        'payment_date': 'Дата оплаты',
+        'amount': 'Сумма'
+    }
+
+admin = Admin(app, name='Менеджер подписок', template_mode='bootstrap3')
+# Добавляем представления в админку
+admin.add_view(UserView(User, db.session, name='Пользователи'))
+admin.add_view(SubscriptionView(Subscription, db.session, name='Подписки'))
+admin.add_view(CategoryView(Category, db.session, name='Категории'))
+admin.add_view(ServiceView(Service, db.session, name='Сервисы'))
+admin.add_view(PaymentView(Payment, db.session, name='Платежи'))
+
+###АДМИНКА
 def update_subscription_payments():
     with app.app_context():
         tz = pytz.timezone('Europe/Moscow')
