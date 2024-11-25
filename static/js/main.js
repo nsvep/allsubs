@@ -606,13 +606,16 @@ function updateNavigationButtons() {
     const skipSlideBtn = document.getElementById('skipSlide');
 
     prevSlideBtn.style.display = currentSlide > 1 ? 'inline-block' : 'none';
+    skipSlideBtn.style.display = currentSlide === 3 ? 'inline-block' : 'none';
 
     if (currentSlide === 3) {
         nextSlideBtn.textContent = 'Сохранить';
-        skipSlideBtn.style.display = 'inline-block';
+        nextSlideBtn.classList.add('btn-success');
+        nextSlideBtn.classList.remove('btn-primary');
     } else {
         nextSlideBtn.textContent = 'Далее';
-        skipSlideBtn.style.display = 'none';
+        nextSlideBtn.classList.add('btn-primary');
+        nextSlideBtn.classList.remove('btn-success');
     }
 }
 
