@@ -313,15 +313,64 @@ h1 {
 /* Профиль */
 .profile-icon {
     position: absolute;
-    top: 20px;
-    right: 20px;
-    font-size: 24px;
     z-index: 1000;
+    transition: all 0.3s ease;
 }
 
 .profile-icon a {
     color: var(--tg-theme-button-color);
     text-decoration: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.profile-icon i {
+    font-size: 24px;
+    transition: all 0.3s ease;
+}
+
+@media screen and (max-width: 375px) {
+    .profile-icon {
+        top: 5px;
+        right: 5px;
+    }
+    .profile-icon i {
+        font-size: 20px;
+    }
+}
+
+/* Адаптация для средних экранов */
+@media screen and (min-width: 376px) and (max-width: 767px) {
+    .profile-icon {
+        top: 10px;
+        right: 10px;
+    }
+    .profile-icon i {
+        font-size: 24px;
+    }
+}
+
+/* Адаптация для больших экранов */
+@media screen and (min-width: 768px) {
+    .profile-icon {
+        top: 15px;
+        right: 15px;
+    }
+    .profile-icon i {
+        font-size: 28px;
+    }
+}
+
+/* Дополнительная адаптация для очень больших экранов */
+@media screen and (min-width: 1024px) {
+    .profile-icon {
+        top: 20px;
+        right: 20px;
+    }
+    .profile-icon i {
+        font-size: 32px;
+    }
 }
 
 .back-button {
