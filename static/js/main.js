@@ -12,6 +12,7 @@ let sortOrder = {
 };
 let currentDate = new Date();
 let subscriptions = [];
+let events = [];
 
 // Кэширование DOM-элементов
 const elements = {
@@ -1167,7 +1168,7 @@ async function showCalendar(event) {
     hideAllSections();
     elements.calendarView.style.display = 'block';
     debugLog('Начало отображения календаря');
-    await loadUserSubscriptions();
+    await loadEvents(); // Загружаем события перед рендерингом календаря
     renderCalendar();
     toggleNavbar(true);
     debugLog('Завершение отображения календаря');
@@ -1204,8 +1205,11 @@ function renderCalendar() {
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
-    for (let i = 1; i < firstDay.getDay(); i++) {
-        elements.calendarDays.appendChild(document.createElement('div'));
+    // Добавляем пустые ячейки для дней до начала месяца
+    for (let i = 0; i < firstDay.getDay(); i++) {
+        const emptyDay = document.createElement('div');
+        emptyDay.classList.add('calendar-day', 'empty');
+        elements.calendarDays.appendChild(emptyDay);
     }
 
     const today = new Date();
@@ -1229,6 +1233,10 @@ function renderCalendar() {
             dayElement.classList.add('has-event');
         }
 
+        if (isPastEvent(currentDateString)) {
+            dayElement.classList.add('past-event');
+        }
+
         if (isToday && hasEvent(currentDateString)) {
             dayElement.classList.add('today-has-event');
         }
@@ -1239,26 +1247,34 @@ function renderCalendar() {
 }
 
 function hasEvent(dateString) {
-    return subscriptions.some(sub => sub.nextPaymentDate === dateString);
+    return events.some(event => event.date === dateString);
+}
+
+function isPastEvent(dateString) {
+    return events.some(event => event.date === dateString && event.isPast);
 }
 
 function showEvents(dateString) {
     const eventList = document.getElementById('eventList');
     eventList.innerHTML = '';
 
-    const events = subscriptions.filter(sub => sub.nextPaymentDate === dateString);
+    const dayEvents = events.filter(event => event.date === dateString);
 
-    if (events.length === 0) {
-        eventList.innerHTML = '<p>Нет событий на этот день</p>';
+    if (dayEvents.length === 0) {
+        eventList.innerHTML = '<p>На этот день события не запланированы.</p>';
         return;
     }
 
-    events.forEach(event => {
+    dayEvents.forEach(event => {
         const eventItem = document.createElement('div');
         eventItem.classList.add('event-item');
+        if (event.isPast) {
+            eventItem.classList.add('past-event');
+        }
         eventItem.innerHTML = `
             <h3>${event.service}</h3>
             <p>Сумма: ${event.amount} ${event.currency}</p>
+            <p>${event.isPast ? 'Прошедший платеж' : 'Предстоящий платеж'}</p>
         `;
         eventList.appendChild(eventItem);
     });
@@ -1379,6 +1395,19 @@ function initDebugSendButton() {
         debugLog('Debug send button not found');
     }
 }
+
+async function loadEvents() {
+    try {
+        const response = await fetch(`/api/calendar-events?user_id=${userId}`);
+        if (!response.ok) {
+            throw new Error('Failed to load events');
+        }
+        events = await response.json();
+    } catch (error) {
+        console.error('Error loading events:', error);
+    }
+}
+
 
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {

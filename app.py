@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time
 from calendar import monthrange
 from sqlalchemy.sql import func
 import pytz
@@ -11,6 +11,7 @@ from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
 import logging
 import requests
+from sqlalchemy import or_
 
 TELEGRAM_BOT_TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 ADMIN_CHAT_ID = 50274860  # Здесь нужно указать chat_id администратора
@@ -58,6 +59,7 @@ class Subscription(db.Model):
 
 class Payment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     subscription_id = db.Column(db.Integer, db.ForeignKey('subscription.id'), nullable=False)
     payment_date = db.Column(db.Date, nullable=False)
     amount = db.Column(db.Float, nullable=False)
@@ -473,16 +475,41 @@ def calendar_events():
         if not user_id:
             return jsonify({"error": "User ID is required"}), 400
 
-        # Изменяем запрос, чтобы получить только неархивные подписки
-        subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=False).all()
+        user_id = int(user_id)
+        today = datetime.now().date()
 
-        events = [{
-            'id': sub.id,
-            'service': sub.service_name,
-            'amount': sub.amount,
-            'currency': sub.currency,
-            'nextPaymentDate': sub.start_date.strftime('%Y-%m-%d') if sub.start_date else None
-        } for sub in subscriptions]
+        # Получаем прошлые платежи из таблицы Payment
+        past_payments = Payment.query.filter_by(user_id=user_id).filter(Payment.payment_date <= today).all()
+
+        # Получаем будущие платежи из таблицы Subscription
+        future_subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=False).filter(Subscription.next_payment_date > today).all()
+
+        events = []
+
+        # Добавляем прошлые платежи
+        for payment in past_payments:
+            events.append({
+                'id': payment.subscription_id,
+                'service': payment.subscription.service_name,
+                'amount': payment.amount,
+                'currency': payment.subscription.currency,
+                'date': payment.payment_date.strftime('%Y-%m-%d'),
+                'isPast': True
+            })
+
+        # Добавляем будущие платежи
+        for sub in future_subscriptions:
+            events.append({
+                'id': sub.id,
+                'service': sub.service_name,
+                'amount': sub.amount,
+                'currency': sub.currency,
+                'date': sub.next_payment_date.strftime('%Y-%m-%d'),
+                'isPast': False
+            })
+
+        # Сортируем события по дате
+        events.sort(key=lambda x: x['date'])
 
         app.logger.info(f"Calendar events for user {user_id}: {events}")
         return jsonify(events)

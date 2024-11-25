@@ -1,28 +1,51 @@
-from app import app, db, Subscription
+import psycopg2
 from datetime import datetime
 
+# Параметры подключения к базе данных
+db_params = {
+    'dbname': 'vsesub',
+    'user': 'admin',
+    'password': 'aboba',
+    'host': 'dbvsesub-nsvep.db-msk0.amvera.tech',
+}
 
-def update_subscription_start_date(subscription_id, new_start_date):
-    with app.app_context():
-        subscription = Subscription.query.get(subscription_id)
-        if subscription:
-            old_start_date = subscription.start_date
-            subscription.start_date = new_start_date
-            db.session.commit()
-            print(f"Subscription {subscription_id} updated:")
-            print(f"Old start date: {old_start_date}")
-            print(f"New start date: {new_start_date}")
-        else:
-            print(f"Subscription with ID {subscription_id} not found.")
+try:
+    # Подключение к базе данных
+    conn = psycopg2.connect(**db_params)
+    cursor = conn.cursor()
+    print("Успешное подключение к базе данных.")
 
+    # Запрос id подписки у пользователя
+    subscription_id = input("Введите id подписки для изменения: ")
 
-if __name__ == "__main__":
-    subscription_id = 16  # ID подписки, которую мы хотим изменить
+    # Запрос новой даты начала у пользователя
+    new_start_date = input("Введите новую дату начала (формат YYYY-MM-DD): ")
 
-    # Запрашиваем у пользователя новую дату
-    date_input = input("Enter new start date (YYYY-MM-DD): ")
+    # Проверка формата даты
     try:
-        new_start_date = datetime.strptime(date_input, "%Y-%m-%d").date()
-        update_subscription_start_date(subscription_id, new_start_date)
+        datetime.strptime(new_start_date, '%Y-%m-%d')
     except ValueError:
-        print("Invalid date format. Please use YYYY-MM-DD.")
+        raise ValueError("Неправильный формат даты. Используйте YYYY-MM-DD")
+
+    # SQL-запрос для обновления даты начала
+    update_query = """
+    UPDATE "subscription"
+    SET start_date = %s
+    WHERE id = %s
+    """
+
+    # Выполнение запроса
+    cursor.execute(update_query, (new_start_date, subscription_id))
+    conn.commit()
+
+    print(f"Дата начала для подписки с id {subscription_id} успешно обновлена.")
+
+except (Exception, psycopg2.Error) as error:
+    print("Ошибка при работе с PostgreSQL:", error)
+
+finally:
+    # Закрытие соединения
+    if conn:
+        cursor.close()
+        conn.close()
+        print("Соединение с PostgreSQL закрыто.")

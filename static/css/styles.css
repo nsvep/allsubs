@@ -413,6 +413,15 @@ h1 {
     padding: 10px;
     margin-bottom: 10px;
 }
+
+.calendar-day.past-event {
+    background-color: #f0f0f0;
+    color: #999;
+}
+
+.event-item.past-event {
+    opacity: 0.7;
+}
 /* Слайды */
 .slide-controls {
     display: flex;
