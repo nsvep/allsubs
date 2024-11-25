@@ -156,6 +156,15 @@ async function init() {
                     elements.profileLink.style.display = 'block';
                 }
 
+                debugLog('Установка начальной темы SweetAlert2');
+                setSweetAlertThemeBasedOnTelegram();
+
+                debugLog('Добавление обработчика события изменения темы Telegram');
+                tg.onEvent('themeChanged', () => {
+                    debugLog('Событие изменения темы Telegram получено');
+                    setSweetAlertThemeBasedOnTelegram();
+                });
+
                 debugLog('Инициализация приложения завершена успешно');
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
@@ -453,7 +462,14 @@ async function saveSubscription(subscriptionId = null) {
             debugLog('Подписка успешно сохранена');
             toggleAddSubscriptionForm(false);
             await updateSubscriptionsList();
-            tg.showPopup({message: subscriptionId ? 'Подписка обновлена' : 'Подписка добавлена'});
+            showAlert({
+                icon: 'success',
+                title: subscriptionId ? 'Подписка обновлена' : 'Подписка добавлена',
+                text: 'Ваши изменения успешно сохранены',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
         } else {
             throw new Error(result.error || 'Неизвестная ошибка при сохранении подписки');
         }
@@ -1409,6 +1425,43 @@ async function loadEvents() {
     } catch (error) {
         console.error('Error loading events:', error);
     }
+}
+
+function setSweetAlertThemeBasedOnTelegram() {
+    const tg = window.Telegram.WebApp;
+    const isDarkMode = tg.colorScheme === 'dark';
+
+    debugLog(`Текущая цветовая схема Telegram: ${tg.colorScheme}`);
+    debugLog(`Темный режим: ${isDarkMode}`);
+
+    if (isDarkMode) {
+        document.documentElement.style.setProperty('--swal2-background', '#19191a');
+        document.documentElement.style.setProperty('--swal2-content-color', '#ffffff');
+        document.documentElement.style.setProperty('--swal2-title-color', '#ffffff');
+        document.documentElement.style.setProperty('--swal2-border', '#555');
+        debugLog('Установка темной темы SweetAlert2 через CSS-переменные');
+    } else {
+        document.documentElement.style.setProperty('--swal2-background', '#ffffff');
+        document.documentElement.style.setProperty('--swal2-content-color', '#545454');
+        document.documentElement.style.setProperty('--swal2-title-color', '#595959');
+        document.documentElement.style.setProperty('--swal2-border', '#d9d9d9');
+        debugLog('Установка светлой темы SweetAlert2 через CSS-переменные');
+    }
+}
+
+function showAlert(options) {
+    debugLog('Вызов функции showAlert');
+    setSweetAlertThemeBasedOnTelegram();
+    const isDarkMode = window.Telegram.WebApp.colorScheme === 'dark';
+    debugLog(`Параметры алерта: ${JSON.stringify(options)}`);
+    return Swal.fire({
+        ...options,
+        customClass: {
+            container: isDarkMode ? 'swal2-dark' : 'swal2-light'
+        },
+        background: isDarkMode ? '#19191a' : '#ffffff',
+        color: isDarkMode ? '#ffffff' : '#545454'
+    });
 }
 
 

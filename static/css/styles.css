@@ -802,6 +802,24 @@ h1 {
     color: var(--tg-theme-hint-color);
     opacity: 0;
 }
+/* SWEET */
+
+.swal2-popup {
+    background-color: var(--swal2-background) !important;
+    color: var(--swal2-content-color) !important;
+}
+
+.swal2-title {
+    color: var(--swal2-title-color) !important;
+}
+
+.swal2-html-container {
+    color: var(--swal2-content-color) !important;
+}
+
+
+/* SWEET */
+
 /* кнопка закрытия */
 .close-button {
     background: none;
