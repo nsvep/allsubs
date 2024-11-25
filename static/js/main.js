@@ -56,8 +56,8 @@ function animateLoadingScreen() {
         targets: circle,
         strokeDashoffset: [anime.setDashoffset, 0],
         easing: 'easeInOutSine',
-        duration: 3000,
-        delay: function(el, i) { return i * 250 },
+        duration: 2000,
+        delay: function(el, i) { return i * 150 },
         direction: 'alternate',
         loop: true
     });
@@ -66,15 +66,15 @@ function animateLoadingScreen() {
         targets: '.app-title',
         opacity: [0, 1],
         translateY: [20, 0],
-        duration: 2000,
+        duration: 1500,
         easing: 'easeOutQuad'
     });
 
     anime({
         targets: '.loading-text',
         opacity: [0, 1],
-        duration: 2000,
-        delay: 1000,
+        duration: 1500,
+        delay: 500,
         easing: 'easeInOutQuad'
     });
 }
@@ -87,7 +87,7 @@ async function init() {
     if (!telegramUser) {
         debugLog('Ошибка: данные пользователя Telegram не найдены');
         console.error('Telegram User data not found');
-        setTimeout(hideLoadingScreen, 5000);
+        setTimeout(hideLoadingScreen, 3000);
         return;
     }
 
@@ -159,22 +159,22 @@ async function init() {
                 debugLog('Инициализация приложения завершена успешно');
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
-                setTimeout(hideLoadingScreen, 5000);
+                setTimeout(hideLoadingScreen, 3000);
 
             } catch (error) {
                 debugLog(`Ошибка при загрузке данных: ${error.message}`);
                 console.error('Error loading data:', error);
-                setTimeout(hideLoadingScreen, 5000);
+                setTimeout(hideLoadingScreen, 3000);
             }
         } else {
             debugLog('Ошибка при получении информации о пользователе');
             console.error('Error getting user info');
-            setTimeout(hideLoadingScreen, 5000);
+            setTimeout(hideLoadingScreen, 3000);
         }
     } catch (error) {
         debugLog(`Ошибка при инициализации: ${error.message}`);
         console.error('Error during initialization:', error);
-        setTimeout(hideLoadingScreen, 5000);
+        setTimeout(hideLoadingScreen, 3000);
     }
 }
 
