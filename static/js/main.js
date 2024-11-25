@@ -466,7 +466,7 @@ async function saveSubscription(subscriptionId = null) {
                 icon: 'success',
                 title: subscriptionId ? 'Подписка обновлена' : 'Подписка добавлена',
                 text: 'Ваши изменения успешно сохранены',
-                timer: 3000,
+                timer: 2500,
                 timerProgressBar: true,
                 showConfirmButton: false
             });
