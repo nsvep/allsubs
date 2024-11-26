@@ -18,27 +18,27 @@ try:
     # Запрос id подписки у пользователя
     subscription_id = input("Введите id подписки для изменения: ")
 
-    # Запрос новой даты начала у пользователя
-    new_start_date = input("Введите новую дату начала (формат YYYY-MM-DD): ")
+    # Запрос новой даты следующего платежа у пользователя
+    new_next_payment_date = input("Введите новую дату следующего платежа (формат YYYY-MM-DD): ")
 
     # Проверка формата даты
     try:
-        datetime.strptime(new_start_date, '%Y-%m-%d')
+        datetime.strptime(new_next_payment_date, '%Y-%m-%d')
     except ValueError:
         raise ValueError("Неправильный формат даты. Используйте YYYY-MM-DD")
 
-    # SQL-запрос для обновления даты начала
+    # SQL-запрос для обновления даты следующего платежа
     update_query = """
     UPDATE "subscription"
-    SET start_date = %s
+    SET next_payment_date = %s
     WHERE id = %s
     """
 
     # Выполнение запроса
-    cursor.execute(update_query, (new_start_date, subscription_id))
+    cursor.execute(update_query, (new_next_payment_date, subscription_id))
     conn.commit()
 
-    print(f"Дата начала для подписки с id {subscription_id} успешно обновлена.")
+    print(f"Дата следующего платежа для подписки с id {subscription_id} успешно обновлена.")
 
 except (Exception, psycopg2.Error) as error:
     print("Ошибка при работе с PostgreSQL:", error)

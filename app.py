@@ -204,81 +204,70 @@ def update_subscription_payments():
     with app.app_context():
         tz = pytz.timezone('Europe/Moscow')
         today = datetime.now(tz).date()
-        print(f"Running update_subscription_payments for date: {today}")
+        start_message = f"update_subscription_payments started for date: {today}"
+        send_admin_message(start_message)
 
-        subscriptions = Subscription.query.filter_by(is_archived=False).all()
-        print(f"Total active subscriptions found: {len(subscriptions)}")
+        try:
+            subscriptions = Subscription.query.filter_by(is_archived=False).all()
+            send_admin_message(f"Total active subscriptions found: {len(subscriptions)}")
 
-        for subscription in subscriptions:
-            try:
-                print(f"Processing subscription ID: {subscription.id}")
+            for subscription in subscriptions:
+                try:
+                    send_admin_message(f"Processing subscription ID: {subscription.id}")
 
-                # Проверяем и сбрасываем last_payment_date, если она в будущем
-                if subscription.last_payment_date and subscription.last_payment_date > today:
-                    print(f"  Resetting future last_payment_date from {subscription.last_payment_date} to None")
-                    subscription.last_payment_date = None
+                    # Проверяем и сбрасываем last_payment_date, если она в будущем
+                    if subscription.last_payment_date and subscription.last_payment_date > today:
+                        send_admin_message(f"  Resetting future last_payment_date from {subscription.last_payment_date} to None")
+                        subscription.last_payment_date = None
 
-                # Устанавливаем next_payment_date, если она не установлена
-                if not subscription.next_payment_date:
-                    subscription.next_payment_date = subscription.start_date
-                    print(f"  Setting initial next_payment_date to: {subscription.next_payment_date}")
+                    # Устанавливаем next_payment_date, если она не установлена
+                    if not subscription.next_payment_date:
+                        subscription.next_payment_date = subscription.start_date
+                        send_admin_message(f"  Setting initial next_payment_date to: {subscription.next_payment_date}")
 
-                # Создаем платежи для всех прошедших дат до сегодняшнего дня
-                while subscription.next_payment_date and subscription.next_payment_date <= today:
-                    existing_payment = Payment.query.filter_by(
-                        subscription_id=subscription.id,
-                        payment_date=subscription.next_payment_date
-                    ).first()
-
-                    if not existing_payment:
-                        payment = Payment(
-                            user_id=subscription.user_id,
+                    # Создаем платежи для всех прошедших дат до сегодняшнего дня
+                    while subscription.next_payment_date and subscription.next_payment_date <= today:
+                        existing_payment = Payment.query.filter_by(
                             subscription_id=subscription.id,
-                            payment_date=subscription.next_payment_date,
-                            amount=subscription.amount
-                        )
-                        db.session.add(payment)
-                        subscription.total_spent += subscription.amount
-                        print(f"  Created payment for date: {subscription.next_payment_date}")
+                            payment_date=subscription.next_payment_date
+                        ).first()
 
-                    subscription.last_payment_date = subscription.next_payment_date
+                        if not existing_payment:
+                            payment = Payment(
+                                user_id=subscription.user_id,
+                                subscription_id=subscription.id,
+                                payment_date=subscription.next_payment_date,
+                                amount=subscription.amount
+                            )
+                            db.session.add(payment)
+                            subscription.total_spent += subscription.amount
+                            send_admin_message(f"  Created payment for date: {subscription.next_payment_date}")
 
-                    # Обновляем next_payment_date
-                    subscription.next_payment_date += relativedelta(months=1)
-                    print(f"  Next payment date set to: {subscription.next_payment_date}")
+                        subscription.last_payment_date = subscription.next_payment_date
 
-                db.session.commit()
-                print(f"  Subscription {subscription.id} processed successfully")
+                        # Обновляем next_payment_date
+                        if subscription.next_payment_date.month == 12:
+                            subscription.next_payment_date = subscription.next_payment_date.replace(year=subscription.next_payment_date.year + 1, month=1)
+                        else:
+                            subscription.next_payment_date = subscription.next_payment_date.replace(month=subscription.next_payment_date.month + 1)
 
-            except Exception as e:
-                print(f"Error processing subscription {subscription.id}: {str(e)}")
-                db.session.rollback()
+                    db.session.commit()
+                    send_admin_message(f"Subscription ID: {subscription.id} processed successfully")
 
-        print("Update subscription payments completed")
+                except Exception as e:
+                    error_message = f"Error processing subscription {subscription.id}: {str(e)}"
+                    send_admin_message(error_message)
+                    app.logger.error(error_message)
+                    db.session.rollback()
 
-    # Отправка уведомления администратору
-    try:
-        message = f"Update subscription payments completed for {today}"
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        payload = {
-            "chat_id": ADMIN_CHAT_ID,
-            "text": message
-        }
-        requests.post(url, json=payload)
-    except Exception as e:
-        print(f"Error sending admin notification: {str(e)}")
+        except Exception as e:
+            error_message = f"Error in update_subscription_payments: {str(e)}"
+            send_admin_message(error_message)
+            app.logger.error(error_message)
 
-# Настройка планировщика
-scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
-scheduler.add_job(
-    func=update_subscription_payments,
-    trigger=CronTrigger(hour=0, minute=1),
-    id='update_subscription_payments_job',
-    name='Update subscription payments every day at 00:01',
-    replace_existing=True)
-
-# Запуск планировщика
-scheduler.start()
+        end_time = datetime.now(tz)
+        end_message = f"update_subscription_payments finished at {end_time}"
+        send_admin_message(end_message)
 
 @app.route('/')
 def index():
@@ -680,6 +669,32 @@ def send_debug_log():
     except Exception as e:
         app.logger.error(f"Error in send_debug_log: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+def send_admin_message(message):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": ADMIN_CHAT_ID,
+            "text": message
+        }
+        response = requests.post(url, json=payload)
+        if response.status_code != 200:
+            print(f"Failed to send admin message. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error sending admin message: {str(e)}")
+
+
+# Настройка планировщика
+scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
+scheduler.add_job(
+    func=update_subscription_payments,
+    trigger=CronTrigger(hour=0, minute=1),
+    id='update_subscription_payments_job',
+    name='Update subscription payments every day at 00:01',
+    replace_existing=True)
+
+# Запуск планировщика
+scheduler.start()
 
 import atexit
 atexit.register(lambda: scheduler.shutdown())
