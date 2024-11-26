@@ -68,7 +68,8 @@ class Payment(db.Model):
     amount = db.Column(db.Float, nullable=False)
     created_at = db.Column(db.DateTime, server_default=func.now())
 
-    def __init__(self, subscription_id, payment_date, amount):
+    def __init__(self, user_id, subscription_id, payment_date, amount):
+        self.user_id = user_id
         self.subscription_id = subscription_id
         self.payment_date = payment_date
         self.amount = amount
@@ -230,9 +231,12 @@ def update_subscription_payments():
                     ).first()
 
                     if not existing_payment:
-                        payment = Payment(subscription_id=subscription.id,
-                                          payment_date=subscription.next_payment_date,
-                                          amount=subscription.amount)
+                        payment = Payment(
+                            user_id=subscription.user_id,
+                            subscription_id=subscription.id,
+                            payment_date=subscription.next_payment_date,
+                            amount=subscription.amount
+                        )
                         db.session.add(payment)
                         subscription.total_spent += subscription.amount
                         print(f"  Created payment for date: {subscription.next_payment_date}")
@@ -245,11 +249,24 @@ def update_subscription_payments():
 
                 db.session.commit()
                 print(f"  Subscription {subscription.id} processed successfully")
+
             except Exception as e:
-                print(f"Error processing subscription {subscription.id}: {e}")
+                print(f"Error processing subscription {subscription.id}: {str(e)}")
                 db.session.rollback()
 
         print("Update subscription payments completed")
+
+    # Отправка уведомления администратору
+    try:
+        message = f"Update subscription payments completed for {today}"
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": ADMIN_CHAT_ID,
+            "text": message
+        }
+        requests.post(url, json=payload)
+    except Exception as e:
+        print(f"Error sending admin notification: {str(e)}")
 
 # Настройка планировщика
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
