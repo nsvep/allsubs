@@ -201,6 +201,9 @@ admin.add_view(PaymentView(Payment, db.session, name='Платежи'))
 
 ###АДМИНКА
 def update_subscription_payments():
+    import traceback
+    stack = traceback.extract_stack()
+    send_admin_message(f"update_subscription_payments called from: {stack[-2][0]}:{stack[-2][1]}")
     with app.app_context():
         tz = pytz.timezone('Europe/Moscow')
         today = datetime.now(tz).date()
@@ -683,6 +686,10 @@ def send_admin_message(message):
     except Exception as e:
         print(f"Error sending admin message: {str(e)}")
 
+@app.route('/trigger_manual_update', methods=['POST'])
+def trigger_manual_update():
+    update_subscription_payments()
+    return jsonify({"message": "Manual update completed. Check server logs for details."})
 
 # Настройка планировщика
 scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
@@ -692,9 +699,6 @@ scheduler.add_job(
     id='update_subscription_payments_job',
     name='Update subscription payments every day at 00:01',
     replace_existing=True)
-
-# Запуск планировщика
-scheduler.start()
 
 import atexit
 atexit.register(lambda: scheduler.shutdown())
@@ -707,14 +711,13 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Error creating database tables: {e}")
 
-        try:
-            update_subscription_payments()
-        except KeyboardInterrupt:
-            print("Update subscription payments interrupted by user")
-        except Exception as e:
-            print(f"Error in update_subscription_payments: {e}")
+    # Запуск планировщика
+    scheduler.start()
 
     try:
         app.run(host='0.0.0.0', port=5000, debug=True)
     except KeyboardInterrupt:
         print("Flask application stopped by user")
+    finally:
+        # Убедимся, что планировщик корректно останавливается при выходе
+        scheduler.shutdown()
