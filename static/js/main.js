@@ -165,6 +165,19 @@ async function init() {
                     setSweetAlertThemeBasedOnTelegram();
                 });
 
+                elements.sendNotifications.addEventListener('change', function() {
+                    if (this.checked) {
+                        showAlert({
+                            text: 'Бот направит уведомления о приближающемся платеже за 7, 3 и 1 день',
+                            toast: true,
+                            position: 'bottom',
+                            showConfirmButton: false,
+                            timer: 2500,
+                            timerProgressBar: true
+                        });
+                    }
+                });
+
                 debugLog('Инициализация приложения завершена успешно');
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
