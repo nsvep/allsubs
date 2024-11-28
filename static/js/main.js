@@ -496,23 +496,47 @@ async function saveSubscription(subscriptionId = null) {
 
 // Удаление подписки
 async function deleteSubscription(subscriptionId) {
-    debugLog(`Начало удаления подписки с ID: ${subscriptionId}`);
-    if (confirm('Вы уверены, что хотите удалить эту подписку?')) {
-        try {
-            const response = await fetch(`/delete_subscription/${subscriptionId}`, {method: 'DELETE'});
+    debugLog(`Попытка удаления подписки с ID: ${subscriptionId}`);
+
+    try {
+        const result = await showAlert({
+            title: 'Вы уверены?',
+            text: "Вы не сможете отменить это действие!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Да, удалить!',
+            cancelButtonText: 'Отмена'
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch(`/delete_subscription/${subscriptionId}`, {
+                method: 'DELETE',
+            });
+
             if (response.ok) {
-                debugLog('Подписка успешно удалена');
+                await showAlert({
+                    title: 'Удалено!',
+                    text: 'Ваша подписка была удалена.',
+                    icon: 'success',
+                    timer: 2000,
+                    timerProgressBar: true,
+                    showConfirmButton: false
+                });
                 await updateSubscriptionsList();
-                tg.showPopup({message: 'Подписка удалена'});
             } else {
-                debugLog('Ошибка при удалении подписки');
                 throw new Error('Failed to delete subscription');
             }
-        } catch (error) {
-            debugLog(`Ошибка при удалении подписки: ${error.message}`);
-            console.error('Error deleting subscription:', error);
-            tg.showPopup({message: 'Ошибка при удалении подписки'});
         }
+    } catch (error) {
+        debugLog(`Ошибка при удалении подписки: ${error.message}`);
+        console.error('Error deleting subscription:', error);
+        await showAlert({
+            title: 'Ошибка!',
+            text: 'Не удалось удалить подписку. Пожалуйста, попробуйте еще раз.',
+            icon: 'error'
+        });
     }
 }
 
