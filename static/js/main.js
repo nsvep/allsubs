@@ -1264,8 +1264,12 @@ function renderCalendar() {
     const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
     const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
 
+    // Корректируем день недели, чтобы неделя начиналась с понедельника
+    let firstDayOfWeek = firstDay.getDay() - 1;
+    if (firstDayOfWeek === -1) firstDayOfWeek = 6; // Если воскресенье, устанавливаем 6
+
     // Добавляем пустые ячейки для дней до начала месяца
-    for (let i = 0; i < firstDay.getDay(); i++) {
+    for (let i = 0; i < firstDayOfWeek; i++) {
         const emptyDay = document.createElement('div');
         emptyDay.classList.add('calendar-day', 'empty');
         elements.calendarDays.appendChild(emptyDay);
