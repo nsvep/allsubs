@@ -225,6 +225,60 @@ h1 {
     color: var(--tg-theme-text-color);
 }
 
+.notification-checkbox-container {
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.notification-checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--tg-theme-text-color);
+}
+
+.notification-checkbox {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.notification-checkbox-text {
+    position: relative;
+    padding-left: 35px;
+}
+
+.notification-checkbox-text:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--tg-theme-button-color);
+    background-color: var(--tg-theme-bg-color);
+    border-radius: 4px;
+}
+
+.notification-checkbox:checked + .notification-checkbox-text:after {
+    content: '\2714';
+    position: absolute;
+    left: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tg-theme-button-color);
+    font-size: 14px;
+}
+
+.notification-checkbox-text {
+    user-select: none;
+}
+
 /* Нижняя навигация */
 .bottom-navbar {
     position: fixed;
