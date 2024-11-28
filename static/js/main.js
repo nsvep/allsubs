@@ -172,7 +172,7 @@ async function init() {
                             toast: true,
                             position: 'bottom',
                             showConfirmButton: false,
-                            timer: 2500,
+                            timer: 2650,
                             timerProgressBar: true
                         });
                     }
