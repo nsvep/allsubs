@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, jsonify
+from flask_apscheduler import APScheduler
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, date, timedelta, time
 from calendar import monthrange
 from sqlalchemy.sql import func
 import pytz
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.cron import CronTrigger
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
 import logging
@@ -27,6 +26,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@dbvsesub-nsvep
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
+
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
+
 
 
 class User(db.Model):
@@ -271,6 +275,7 @@ def update_subscription_payments():
         end_time = datetime.now(tz)
         end_message = f"update_subscription_payments finished at {end_time}"
         send_admin_message(end_message)
+        pass
 
 @app.route('/')
 def index():
@@ -691,17 +696,14 @@ def trigger_manual_update():
     update_subscription_payments()
     return jsonify({"message": "Manual update completed. Check server logs for details."})
 
-# Настройка планировщика
-scheduler = BackgroundScheduler(timezone=pytz.timezone('Europe/Moscow'))
 scheduler.add_job(
-    func=update_subscription_payments,
-    trigger=CronTrigger(hour=0, minute=1),
     id='update_subscription_payments_job',
-    name='Update subscription payments every day at 00:01',
-    replace_existing=True)
-
-import atexit
-atexit.register(lambda: scheduler.shutdown())
+    func=update_subscription_payments,
+    trigger='cron',
+    hour=12,
+    minute=00,
+    timezone='Europe/Moscow'
+)
 
 if __name__ == '__main__':
     with app.app_context():
@@ -711,13 +713,7 @@ if __name__ == '__main__':
         except Exception as e:
             print(f"Error creating database tables: {e}")
 
-    # Запуск планировщика
-    scheduler.start()
-
     try:
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        app.run(host='0.0.0.0', port=5000, debug=False)
     except KeyboardInterrupt:
         print("Flask application stopped by user")
-    finally:
-        # Убедимся, что планировщик корректно останавливается при выходе
-        scheduler.shutdown()
