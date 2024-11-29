@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:aboba@dbvsesub-nsvep.db-msk0.amvera.tech/vsesub?options=-c%20timezone=Europe/Moscow'
+app.config['SECRET_KEY'] = 'aboba_sin_sobaki'
 db = SQLAlchemy(app)
 CORS(app)
 migrate = Migrate(app, db)
