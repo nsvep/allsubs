@@ -275,7 +275,12 @@ function updateSelects(services, categories) {
 
     const $serviceSelect = $(elements.serviceSelect);
     $serviceSelect.empty();
-    $serviceSelect.append(new Option('', '', false, false));
+
+    // Добавляем пустую опцию как плейсхолдер
+    $serviceSelect.append(new Option('', '', true, true));
+
+    // Добавляем опцию "Другое (ввести вручную)" сразу после плейсхолдера
+    $serviceSelect.append(new Option('Другое (ввести вручную)', 'custom', false, false));
 
     Object.entries(groupedServices).forEach(([category, services]) => {
         const $optgroup = $('<optgroup>').attr('label', category);
@@ -285,9 +290,10 @@ function updateSelects(services, categories) {
         $serviceSelect.append($optgroup);
     });
 
-    $serviceSelect.append(new Option('Другое (ввести вручную)', 'custom', false, false));
-
     updateSelect(elements.categorySelect, categories, 'id', 'name');
+
+    // Обновляем Select2 после изменения опций
+    $serviceSelect.trigger('change');
 }
 
 // Обработчик изменения выбора сервиса
