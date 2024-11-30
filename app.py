@@ -53,7 +53,6 @@ class Subscription(db.Model):
     next_payment_date = db.Column(db.Date)
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), nullable=False)
-    discount = db.Column(db.Float)
     bank = db.Column(db.String(50))
     card_last_4 = db.Column(db.String(4))
     send_notifications = db.Column(db.Boolean, default=False)
@@ -340,7 +339,6 @@ def get_subscriptions(user_id):
         'start_date': sub.start_date.strftime('%Y-%m-%d'),
         'amount': sub.amount,
         'currency': sub.currency,
-        'discount': sub.discount,
         'bank': sub.bank,
         'card_last_4': sub.card_last_4,
         'next_payment_date': sub.next_payment_date.strftime('%Y-%m-%d') if sub.next_payment_date else None,
@@ -368,7 +366,6 @@ def get_subscription(subscription_id):
         'start_date': subscription.start_date.strftime('%Y-%m-%d'),
         'amount': subscription.amount,
         'currency': subscription.currency,
-        'discount': subscription.discount,
         'bank': subscription.bank,
         'card_last_4': subscription.card_last_4
     })
