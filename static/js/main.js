@@ -178,6 +178,9 @@ async function init() {
                     }
                 });
 
+                loadCurrencies();
+                loadBanks();
+
                 debugLog('Инициализация приложения завершена успешно');
 
                 // Гарантированный вызов hideLoadingScreen через 5 секунд
@@ -1518,6 +1521,31 @@ function showAlert(options) {
     });
 }
 
+async function loadCurrencies() {
+    const response = await fetch('/get_currencies');
+    const currencies = await response.json();
+    const currencySelect = document.getElementById('currency');
+    currencySelect.innerHTML = '';
+    currencies.forEach(currency => {
+        const option = document.createElement('option');
+        option.value = currency.code;
+        option.textContent = `${currency.name} (${currency.code})`;
+        currencySelect.appendChild(option);
+    });
+}
+
+async function loadBanks() {
+    const response = await fetch('/get_banks');
+    const banks = await response.json();
+    const bankSelect = document.getElementById('bank');
+    bankSelect.innerHTML = '<option value="">Выберите банк</option>';
+    banks.forEach(bank => {
+        const option = document.createElement('option');
+        option.value = bank.name;
+        option.textContent = bank.name;
+        bankSelect.appendChild(option);
+    });
+}
 
 // Инициализация приложения при загрузке
 document.addEventListener('DOMContentLoaded', () => {

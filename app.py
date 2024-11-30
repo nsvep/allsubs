@@ -98,6 +98,16 @@ class Service(db.Model):
 
     def to_dict(self):
         return {'id': self.id, 'name': self.name, 'category_id': self.category_id, 'is_custom': self.is_custom}
+    
+class Currency(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    code = db.Column(db.String(3), nullable=False, unique=True)
+
+class Bank(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
 ###АДМИНКА
 def date_format(view, value):
     return value.strftime('%d.%m.%Y %H:%M:%S')
@@ -202,6 +212,8 @@ admin.add_view(SubscriptionView(Subscription, db.session, name='Подписки
 admin.add_view(CategoryView(Category, db.session, name='Категории'))
 admin.add_view(ServiceView(Service, db.session, name='Сервисы'))
 admin.add_view(PaymentView(Payment, db.session, name='Платежи'))
+admin.add_view(ModelView(Currency, db.session, name='Валюты'))
+admin.add_view(ModelView(Bank, db.session, name='Банки'))
 
 ###АДМИНКА
 def update_subscription_payments():
@@ -693,6 +705,16 @@ def send_admin_message(message):
 def trigger_manual_update():
     update_subscription_payments()
     return jsonify({"message": "Manual update completed. Check server logs for details."})
+
+@app.route('/get_currencies')
+def get_currencies():
+    currencies = Currency.query.all()
+    return jsonify([{'id': c.id, 'name': c.name, 'code': c.code} for c in currencies])
+
+@app.route('/get_banks')
+def get_banks():
+    banks = Bank.query.all()
+    return jsonify([{'id': b.id, 'name': b.name} for b in banks])
 
 scheduler.add_job(
     id='update_subscription_payments_job',
