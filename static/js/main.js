@@ -995,9 +995,19 @@ async function editSubscription(subscriptionId) {
         <div class="form-group">
             <label for="edit-currency">Валюта</label>
             <select id="edit-currency" required>
-                <option value="RUB" ${currentCurrency === 'RUB' ? 'selected' : ''}>RUB</option>
-                <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>USD</option>
-                <option value="EUR" ${currentCurrency === 'EUR' ? 'selected' : ''}>EUR</option>
+                <option value="RUB" ${currentCurrency === 'RUB' ? 'selected' : ''}>Рубль</option>
+                <option value="USD" ${currentCurrency === 'USD' ? 'selected' : ''}>Доллар</option>
+                <option value="EUR" ${currentCurrency === 'EUR' ? 'selected' : ''}>Евро</option>
+                <option value="AED" ${currentCurrency === 'AED' ? 'selected' : ''}>Дирхам ОАЭ</option>
+                <option value="KZT" ${currentCurrency === 'KZT' ? 'selected' : ''}>Тенге</option>
+                <option value="TRY" ${currentCurrency === 'TRY' ? 'selected' : ''}>Турецкая лира</option>
+                <option value="BYN" ${currentCurrency === 'BYN' ? 'selected' : ''}>Белорусский рубль</option>
+                <option value="UAH" ${currentCurrency === 'UAH' ? 'selected' : ''}>Украинская Гривна</option>
+                <option value="CNY" ${currentCurrency === 'CNY' ? 'selected' : ''}>Юань</option>
+                <option value="GBP" ${currentCurrency === 'GBP' ? 'selected' : ''}>Фунт стерлингов</option>
+                <option value="JPY" ${currentCurrency === 'JPY' ? 'selected' : ''}>Японская иена</option>
+                <option value="CHF" ${currentCurrency === 'CHF' ? 'selected' : ''}>Швейцарский франк</option>
+                <option value="INR" ${currentCurrency === 'INR' ? 'selected' : ''}>Индийская рупия</option>
             </select>
         </div>
         <div class="edit-actions">

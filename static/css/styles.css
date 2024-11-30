@@ -188,6 +188,16 @@ h1 {
     display: none;
 }
 
+/* селектор валют */
+
+#currency, #edit-currency {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* селектор валют */
+
+
 /* progress bar */
 .progress-bar-container {
     width: 100%;
