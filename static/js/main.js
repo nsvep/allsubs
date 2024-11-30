@@ -1522,29 +1522,45 @@ function showAlert(options) {
 }
 
 async function loadCurrencies() {
-    const response = await fetch('/get_currencies');
-    const currencies = await response.json();
-    const currencySelect = document.getElementById('currency');
-    currencySelect.innerHTML = '';
-    currencies.forEach(currency => {
-        const option = document.createElement('option');
-        option.value = currency.code;
-        option.textContent = `${currency.name} (${currency.code})`;
-        currencySelect.appendChild(option);
-    });
+    debugLog('Начало загрузки списка валют');
+    try {
+        const response = await fetch('/get_currencies');
+        const currencies = await response.json();
+        debugLog(`Получено ${currencies.length} валют`);
+        const currencySelect = document.getElementById('currency');
+        currencySelect.innerHTML = '';
+        currencies.forEach(currency => {
+            const option = document.createElement('option');
+            option.value = currency.code;
+            option.textContent = `${currency.name} (${currency.code})`;
+            currencySelect.appendChild(option);
+        });
+        debugLog('Список валют успешно загружен и обновлен в селекторе');
+    } catch (error) {
+        debugLog(`Ошибка при загрузке валют: ${error.message}`);
+        console.error('Error loading currencies:', error);
+    }
 }
 
 async function loadBanks() {
-    const response = await fetch('/get_banks');
-    const banks = await response.json();
-    const bankSelect = document.getElementById('bank');
-    bankSelect.innerHTML = '<option value="">Выберите банк</option>';
-    banks.forEach(bank => {
-        const option = document.createElement('option');
-        option.value = bank.name;
-        option.textContent = bank.name;
-        bankSelect.appendChild(option);
-    });
+    debugLog('Начало загрузки списка банков');
+    try {
+        const response = await fetch('/get_banks');
+        const banks = await response.json();
+        debugLog(`Получено ${banks.length} банков`);
+        const bankSelect = document.getElementById('bank');
+        bankSelect.innerHTML = '<option value="">Выберите банк</option>';
+        banks.forEach(bank => {
+            const option = document.createElement('option');
+            option.value = bank.name;
+            option.textContent = bank.name;
+            bankSelect.appendChild(option);
+        });
+        debugLog('Список банков успешно загружен и обновлен в селекторе');
+    } catch (error) {
+        debugLog(`Ошибка при загрузке банков: ${error.message}`);
+        console.error('Error loading banks:', error);
+    }
 }
 
 // Инициализация приложения при загрузке
