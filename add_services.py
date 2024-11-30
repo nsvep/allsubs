@@ -20,13 +20,14 @@ def add_categories_and_services():
         # Добавление категорий
         categories = [
             "Мульти",
-            "Музыка",
+            "Банк",
             "Кино",
+            "Музыка",
             "Книги",
-            "Программное обеспечение",
+            "Другое",
+            "Софт",
             "Игры",
-            "Банковские услуги",
-            "Другое"
+            "Образование"
         ]
 
         for category_name in categories:
@@ -39,14 +40,15 @@ def add_categories_and_services():
 
         # Словарь сервисов по категориям
         services = {
-            "Мульти": ["Telegram Premium", "OZON Premium", "WB Клуб", "МТС Premium", "Пакет X5", "СберПрайм","Яндекс Плюс"],
-            "Музыка": ["Apple Music", "Spotify", "VK Музыка", "МТС Музыка"],
-            "Кино": ["Netflix", "Apple TV", "KION", "More.tv", "Okko", "PREMIER", "Start", "ИВИ"],
-            "Книги": ["MyBook", "ЛитРес", "Литнет", "Патефон", "Строки", "Яндекс Книги"],
-            "Программное обеспечение": ["Adobe Creative Cloud", "Microsoft 365", "Photoshop"],
-            "Игры": ["Apple Arcade", "PlayStation Plus", "Xbox Game Pass"],
-            "Банковские услуги": ["Tinkoff Pro", "Альфа‑Смарт (Альфа-Банк)", "Всё Своё. Продвинутый (Россельхозбанк)", "Газпром Бонус", "Привилегии Плюс (ВТБ)", "Халва. Десятка"],
-            "Другое": ["VPN", "Интернет", "Мобильная связь", "Пожертвования"],
+            "Мульти": ["Яндекс Плюс", "СберПрайм", "OZON Premium", "Telegram Premium", "WB Клуб", "МТС Premium", "Пакет X5"],
+            "Банк": ["Tinkoff Pro", "Альфа‑Смарт", "Tinkoff Premium", "Халва. Десятка", "Привилегии Плюс", "Газпром Бонус", "Всё Своё. Продвинутый"],
+            "Кино": ["ИВИ", "PREMIER", "Okko", "Start", "More.tv", "KION", "Apple TV", "Netflix"],
+            "Музыка": ["VK Музыка", "Spotify", "Apple Music", "МТС Музыка", "СберЗвук"],
+            "Книги": ["Яндекс Книги", "Строки", "ЛитРес", "MyBook", "Литнет", "Патефон"],
+            "Другое": ["Мобильная связь", "Интернет", "Карта Тройка", "hh PRO", "VPN", "Благотворительность"],
+            "Софт": ["Яндекс Диск", "Облако Mail.ru", "Microsoft 365", "Microsoft OneDrive", "Adobe Creative Cloud", "Photoshop", "iCloud+", "Яндекс 360+", "Kaspersky", "Dr.Web", "Docker", "Figma"],
+            "Игры": ["Dota Plus", "Discord Nitro", "Xbox Game Pass", "PlayStation Plus", "Apple Arcade"],
+            "Образование": ["Duolingo", "Учи.ру", "Skayeng", "Arzamas", "Правое полушарие Интроверта"]
         }
 
         # Добавление сервисов
