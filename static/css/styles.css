@@ -331,6 +331,15 @@ h1 {
     margin-top: 5px;
 }
 
+.select2-results__option.select2-results__message a {
+    color: var(--tg-theme-link-color, #007bff);
+    text-decoration: underline;
+}
+
+.select2-results__option.select2-results__message a:hover {
+    text-decoration: none;
+}
+
 
 /* Формы */
 .form-group {

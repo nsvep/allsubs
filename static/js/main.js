@@ -138,11 +138,36 @@ async function init() {
                     allowClear: true,
                     theme: "classic",
                     templateResult: formatService,
-                    templateSelection: formatServiceSelection
+                    templateSelection: formatServiceSelection,
+                    language: {
+                        noResults: function() {
+                            return 'Сервис не найден, но вы можете добавить свою подписку <a href="#" class="select2-add-custom">нажав сюда</a>';
+                        }
+                    },
+                    escapeMarkup: function(markup) {
+                        return markup;
+                    }
                 }).on('select2:open', function() {
                     setTimeout(function() {
                         $('.select2-search__field').attr('placeholder', 'Поиск сервиса...');
                     }, 0);
+                });
+                
+                // нажатие по ссылке
+                $(document).on('click', '.select2-add-custom', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Выбираем опцию "custom"
+                    $(elements.serviceSelect).val('custom').trigger('change');
+                    
+                    // Закрываем выпадающий список Select2
+                    $(elements.serviceSelect).select2('close');
+                    
+                    // Вызываем функцию onServiceChange() если она существует
+                    if (typeof onServiceChange === 'function') {
+                        onServiceChange();
+                    }
                 });
 
                 applySelectStylesBasedOnTheme();
