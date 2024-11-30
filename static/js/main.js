@@ -131,6 +131,25 @@ async function init() {
 
                 // Добавление обработчиков событий
                 elements.serviceSelect.addEventListener('change', onServiceChange);
+
+                // Инициализация Select2 для селектора сервиса
+                $(elements.serviceSelect).select2({
+                    placeholder: "Выберите сервис",
+                    allowClear: true,
+                    theme: "classic",
+                    templateResult: formatService,
+                    templateSelection: formatServiceSelection
+                }).on('select2:open', function() {
+                    setTimeout(function() {
+                        $('.select2-search__field').attr('placeholder', 'Поиск сервиса...');
+                    }, 0);
+                });
+
+                applySelectStylesBasedOnTheme();
+
+                // Обновляем обработчик изменения для работы с Select2
+                $(elements.serviceSelect).on('select2:select', onServiceChange);
+
                 elements.prevSlide.addEventListener('click', prevSlide);
                 elements.nextSlide.addEventListener('click', nextSlide);
                 elements.skipSlide.addEventListener('click', skipSlide);
@@ -245,7 +264,29 @@ async function fetchCategories() {
 
 // Обновление выпадающих списков
 function updateSelects(services, categories) {
-    updateSelect(elements.serviceSelect, services, 'id', 'name', true);
+    const groupedServices = services.reduce((acc, service) => {
+        const category = categories.find(c => c.id === service.category_id) || { name: 'Другое' };
+        if (!acc[category.name]) {
+            acc[category.name] = [];
+        }
+        acc[category.name].push(service);
+        return acc;
+    }, {});
+
+    const $serviceSelect = $(elements.serviceSelect);
+    $serviceSelect.empty();
+    $serviceSelect.append(new Option('', '', false, false));
+
+    Object.entries(groupedServices).forEach(([category, services]) => {
+        const $optgroup = $('<optgroup>').attr('label', category);
+        services.forEach(service => {
+            $optgroup.append(new Option(service.name, service.id, false, false));
+        });
+        $serviceSelect.append($optgroup);
+    });
+
+    $serviceSelect.append(new Option('Другое (ввести вручную)', 'custom', false, false));
+
     updateSelect(elements.categorySelect, categories, 'id', 'name');
 }
 
@@ -862,19 +903,18 @@ function initNavbar() {
 }
 // Обновление выпадающего списка
 function updateSelect(selectElement, options, valueKey, textKey, addCustomOption = false) {
-    selectElement.innerHTML = '';
+    const $select = $(selectElement);
+    $select.empty();
+    
     if (addCustomOption) {
-        const customOption = document.createElement('option');
-        customOption.value = 'custom';
-        customOption.textContent = 'Другое (ввести вручную)';
-        selectElement.appendChild(customOption);
+        $select.append(new Option('Другое (ввести вручную)', 'custom', false, false));
     }
+    
     options.forEach(option => {
-        const optionElement = document.createElement('option');
-        optionElement.value = option[valueKey];
-        optionElement.textContent = option[textKey];
-        selectElement.appendChild(optionElement);
+        $select.append(new Option(option[textKey], option[valueKey], false, false));
     });
+    
+    $select.trigger('change');
 }
 
 function debugLog(message) {
@@ -1561,6 +1601,85 @@ async function loadBanks() {
         debugLog(`Ошибка при загрузке банков: ${error.message}`);
         console.error('Error loading banks:', error);
     }
+}
+
+function formatService(service) {
+    if (!service.id) {
+        return service.text;
+    }
+    const $container = $(
+        '<div class="select2-service-option">' +
+            '<span class="service-name"></span>' +
+        '</div>'
+    );
+    $container.find('.service-name').text(service.text);
+    return $container;
+}
+
+function formatServiceSelection(service) {
+    if (!service.id || service.id === 'custom') {
+        return service.text;
+    }
+    return $('<span class="selected-service-name">' + service.text + '</span>');
+}
+
+function applySelectStylesBasedOnTheme() {
+    const isDarkTheme = window.Telegram.WebApp.colorScheme === 'dark';
+    const bgColor = isDarkTheme ? tg.themeParams.secondary_bg_color : tg.themeParams.bg_color;
+    const textColor = isDarkTheme ? tg.themeParams.text_color : tg.themeParams.text_color;
+    const hintColor = isDarkTheme ? tg.themeParams.hint_color : tg.themeParams.hint_color;
+    const buttonColor = tg.themeParams.button_color;
+    const buttonTextColor = tg.themeParams.button_text_color;
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .select2-container--classic .select2-selection--single,
+        .select2-container--classic.select2-container--open .select2-selection--single {
+            background: ${bgColor} !important;
+            background-image: none !important;
+            color: ${textColor} !important;
+            border-color: ${hintColor} !important;
+        }
+        .select2-container--classic .select2-selection--single .select2-selection__rendered {
+            color: ${textColor} !important;
+        }
+        .select2-container--classic .select2-selection--single .select2-selection__arrow {
+            background-color: ${bgColor} !important;
+            background-image: none !important;
+            border-left-color: ${hintColor} !important;
+        }
+        .select2-container--classic .select2-selection--single .select2-selection__arrow b {
+            border-color: ${hintColor} transparent transparent transparent !important;
+        }
+        .select2-container--classic.select2-container--open .select2-selection--single .select2-selection__arrow b {
+            border-color: transparent transparent ${hintColor} transparent !important;
+        }
+        .select2-container--classic .select2-dropdown {
+            background-color: ${bgColor} !important;
+            border-color: ${hintColor} !important;
+        }
+        .select2-container--classic .select2-search--dropdown {
+            background-color: ${bgColor} !important;
+        }
+        .select2-container--classic .select2-search--dropdown .select2-search__field {
+            background-color: ${bgColor} !important;
+            color: ${textColor} !important;
+            border-color: ${hintColor} !important;
+        }
+        .select2-container--classic .select2-results__option {
+            background-color: ${bgColor} !important;
+            color: ${textColor} !important;
+        }
+        .select2-container--classic .select2-results__option--highlighted.select2-results__option--selectable {
+            background-color: ${buttonColor} !important;
+            color: ${buttonTextColor} !important;
+        }
+        .select2-container--classic.select2-container--open.select2-container--above .select2-selection--single,
+        .select2-container--classic.select2-container--open.select2-container--below .select2-selection--single {
+            background-image: none !important;
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 // Инициализация приложения при загрузке
