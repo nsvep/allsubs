@@ -1410,29 +1410,34 @@ function isPastEvent(dateString) {
 }
 
 function showEvents(dateString) {
-    const eventList = document.getElementById('eventList');
-    eventList.innerHTML = '';
-
+    const formattedDate = formatDate(dateString);
     const dayEvents = events.filter(event => event.date === dateString);
 
+    let content = '';
     if (dayEvents.length === 0) {
-        eventList.innerHTML = '<p>На этот день события не запланированы.</p>';
-        return;
+        content = '<p class="no-events">На этот день события не запланированы.</p>';
+    } else {
+        content = dayEvents.map(event => `
+            <div class="event-item ${event.isPast ? 'past-event' : ''}">
+                <h3>${event.service}</h3>
+                <p>Сумма: ${event.amount} ${event.currency}</p>
+                <p>${event.isPast ? 'Прошедший платеж' : 'Предстоящий платеж'}</p>
+            </div>
+        `).join('');
     }
 
-    dayEvents.forEach(event => {
-        const eventItem = document.createElement('div');
-        eventItem.classList.add('event-item');
-        if (event.isPast) {
-            eventItem.classList.add('past-event');
-        }
-        eventItem.innerHTML = `
-            <h3>${event.service}</h3>
-            <p>Сумма: ${event.amount} ${event.currency}</p>
-            <p>${event.isPast ? 'Прошедший платеж' : 'Предстоящий платеж'}</p>
-        `;
-        eventList.appendChild(eventItem);
+    showAlert({
+        title: `События на ${formattedDate}`,
+        html: content,
+        showCloseButton: true,
+        showConfirmButton: false
     });
+}
+
+function formatDate(dateString) {
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function addBackButton() {

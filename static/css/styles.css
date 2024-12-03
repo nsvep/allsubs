@@ -586,18 +586,43 @@ h1 {
 }
 
 /* Календарь */
+#calendar-view {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: var(--tg-theme-secondary-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 .calendar-container {
     background-color: var(--tg-theme-bg-color);
     border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--tg-theme-text-color);
+    text-align: center;
 }
 
 .calendar-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+}
+
+.calendar-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+#currentMonth {
+    font-size: 18px;
+    font-weight: bold;
 }
 
 .calendar-nav-btn {
@@ -606,6 +631,7 @@ h1 {
     font-size: 18px;
     color: var(--tg-theme-button-color);
     cursor: pointer;
+    padding: 5px 10px;
 }
 
 .calendar-weekdays {
@@ -614,6 +640,7 @@ h1 {
     text-align: center;
     font-weight: bold;
     margin-bottom: 10px;
+    font-size: 14px;
 }
 
 .calendar-days {
@@ -621,15 +648,15 @@ h1 {
     grid-template-columns: repeat(7, 1fr);
     gap: 5px;
 }
-
 .calendar-day {
     aspect-ratio: 1;
     display: flex;
     justify-content: center;
     align-items: center;
+    font-size: 14px;
     border-radius: 50%;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease;
 }
 
 .calendar-day:hover {
@@ -652,8 +679,9 @@ h1 {
     border: 2px solid var(--tg-theme-text-color);
 }
 
-.event-list {
-    margin-top: 20px;
+.calendar-day.past-event {
+    background-color: #f0f0f0;
+    color: #999;
 }
 
 .event-item {
@@ -661,15 +689,27 @@ h1 {
     border-radius: 8px;
     padding: 10px;
     margin-bottom: 10px;
+    transition: transform 0.3s ease;
 }
 
-.calendar-day.past-event {
-    background-color: #f0f0f0;
-    color: #999;
+.event-item:hover {
+    transform: translateY(-2px);
 }
 
-.event-item.past-event {
-    opacity: 0.7;
+.event-item h3 {
+    margin: 0 0 5px;
+    font-size: 16px;
+}
+
+.event-item p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--tg-theme-hint-color);
+}
+
+.no-events {
+    text-align: center;
+    color: var(--tg-theme-hint-color);
 }
 /* Слайды */
 .slide-controls {
