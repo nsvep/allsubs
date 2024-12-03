@@ -711,6 +711,40 @@ h1 {
     text-align: center;
     color: var(--tg-theme-hint-color);
 }
+/* алерт календарь */
+.events-alert-popup {
+    font-size: 0.9rem;
+}
+
+.events-alert-title {
+    font-size: 1.3em !important;
+}
+
+.events-alert-content {
+    padding-top: 0.5em;
+}
+
+.events-alert-footer {
+    justify-content: center;
+    padding-top: 1em;
+}
+
+#addNewSubscription {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#addNewSubscription:hover {
+    background-color: var(--tg-theme-secondary-bg-color);
+}
+
+/* алерт календарь */
 /* Слайды */
 .slide-controls {
     display: flex;

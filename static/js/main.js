@@ -1410,7 +1410,7 @@ function isPastEvent(dateString) {
 }
 
 function showEvents(dateString) {
-    const formattedDate = formatDate(dateString);
+    const formattedDate = formatDateShort(dateString);
     const dayEvents = events.filter(event => event.date === dateString);
 
     let content = '';
@@ -1427,11 +1427,38 @@ function showEvents(dateString) {
     }
 
     showAlert({
-        title: `События на ${formattedDate}`,
+        title: `События: ${formattedDate}`,
         html: content,
         showCloseButton: true,
-        showConfirmButton: false
+        showConfirmButton: false,
+        footer: '<button id="addNewSubscription" class="swal2-confirm swal2-styled">Добавить новую подписку</button>',
+        customClass: {
+            container: 'events-alert-container',
+            popup: 'events-alert-popup',
+            header: 'events-alert-header',
+            title: 'events-alert-title',
+            closeButton: 'events-alert-close-button',
+            content: 'events-alert-content',
+            footer: 'events-alert-footer'
+        }
+    }).then(() => {
+        document.removeEventListener('click', handleAddNewSubscription);
     });
+
+    document.addEventListener('click', handleAddNewSubscription);
+}
+
+function handleAddNewSubscription(event) {
+    if (event.target.id === 'addNewSubscription') {
+        Swal.close(); // Закрываем текущее окно SweetAlert2
+        toggleAddSubscriptionForm(true); // Открываем форму добавления подписки
+    }
+}
+
+function formatDateShort(dateString) {
+    const [year, month, day] = dateString.split('-');
+    const date = new Date(year, month - 1, day);
+    return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
 }
 
 function formatDate(dateString) {
