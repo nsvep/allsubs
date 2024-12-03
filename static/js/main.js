@@ -39,6 +39,7 @@ const elements = {
     prevMonth: document.getElementById('prevMonth'),
     nextMonth: document.getElementById('nextMonth'),
     eventList: document.getElementById('eventList'),
+    billingCycle: document.getElementById('billingCycle'),
 
 };
 
@@ -224,6 +225,12 @@ async function init() {
 
                 loadCurrencies();
                 loadBanks();
+
+                elements.billingCycle.addEventListener('change', function() {
+                    // Можно добавить здесь логику для обновления UI, если необходимо
+                    console.log('Billing cycle changed:', this.value);
+                    debugLog('Billing cycle changed:', this.value);
+                });
 
                 debugLog('Инициализация приложения завершена успешно');
 
@@ -411,6 +418,7 @@ function createSubscriptionElement(sub) {
     const nextPaymentDate = sub.next_payment_date ? new Date(sub.next_payment_date) : new Date(sub.start_date);
     const formattedDate = nextPaymentDate.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
     const amountClass = sub.amount > 1000 ? 'subscription-amount high' : 'subscription-amount';
+    const cycleText = sub.billing_cycle === 'monthly' ? 'месяц' : 'год';
 
     subElement.innerHTML = `
         <div class="subscription-header">
@@ -426,8 +434,7 @@ function createSubscriptionElement(sub) {
         </div>
         ${createField('subscription-category_name', 'fas fa-tag', sub.category_name)}
         ${createField('subscription-next-payment', 'fas fa-calendar-alt', `Следующий платеж: ${formattedDate}`)}
-        ${createField(amountClass, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency}`)}
-        ${sub.discount ? createField('subscription-discount', 'fas fa-percent', `Скидка: ${sub.discount}%`) : ''}
+        ${createField(amountClass, 'fas fa-money-bill-wave', `${sub.amount} ${sub.currency} в ${cycleText}`)}
         ${sub.bank ? createField('subscription-bank', 'fas fa-university', `Банк: ${sub.bank}`) : ''}
         ${sub.card_last_4 ? createField('subscription-card', 'fas fa-credit-card', `Карта: *${sub.card_last_4}`) : ''}
         ${sub.total_spent > 0 ? createField('subscription-total-spent', 'fas fa-chart-line', `Всего потрачено: ${sub.total_spent} ${sub.currency}`) : ''}
@@ -521,6 +528,7 @@ async function saveSubscription(subscriptionId = null) {
         user_id: userId,
         service_name: isCustomService ? elements.customService.value : elements.serviceSelect.value,
         next_payment_date: elements.nextPaymentDate.value,
+        billing_cycle: elements.billingCycle.value,
         amount: parseFloat(elements.amount.value),
         currency: elements.currency.value,
         bank: elements.bank.value,

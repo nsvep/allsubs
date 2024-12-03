@@ -416,6 +416,15 @@ h1 {
     user-select: none;
 }
 
+#billingCycle {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--tg-theme-hint-color);
+    border-radius: 4px;
+    background-color: var(--tg-theme-bg-color);
+    color: var(--tg-theme-text-color);
+}
+
 /* Нижняя навигация */
 .bottom-navbar {
     position: fixed;

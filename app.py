@@ -51,6 +51,7 @@ class Subscription(db.Model):
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     start_date = db.Column(db.Date, nullable=False)
     next_payment_date = db.Column(db.Date)
+    billing_cycle = db.Column(db.String(10), nullable=False, default='monthly')
     amount = db.Column(db.Float, nullable=False)
     currency = db.Column(db.String(3), nullable=False)
     bank = db.Column(db.String(50))
@@ -265,10 +266,10 @@ def update_subscription_payments():
                         subscription.last_payment_date = subscription.next_payment_date
 
                         # Обновляем next_payment_date
-                        if subscription.next_payment_date.month == 12:
-                            subscription.next_payment_date = subscription.next_payment_date.replace(year=subscription.next_payment_date.year + 1, month=1)
-                        else:
-                            subscription.next_payment_date = subscription.next_payment_date.replace(month=subscription.next_payment_date.month + 1)
+                        if subscription.billing_cycle == 'monthly':
+                            subscription.next_payment_date += relativedelta(months=1)
+                        else:  # yearly
+                            subscription.next_payment_date += relativedelta(years=1)
 
                     db.session.commit()
                     send_admin_message(f"Subscription ID: {subscription.id} processed successfully")
@@ -349,6 +350,7 @@ def get_subscriptions(user_id):
         'service_name': sub.service_name,
         'category_name': sub.category.name,
         'start_date': sub.start_date.strftime('%Y-%m-%d'),
+        'billing_cycle': sub.billing_cycle,
         'amount': sub.amount,
         'currency': sub.currency,
         'bank': sub.bank,
@@ -379,7 +381,8 @@ def get_subscription(subscription_id):
         'amount': subscription.amount,
         'currency': subscription.currency,
         'bank': subscription.bank,
-        'card_last_4': subscription.card_last_4
+        'card_last_4': subscription.card_last_4, 
+        'billing_cycle': subscription.billing_cycle
     })
 
 
@@ -457,6 +460,7 @@ def add_subscription():
             service_name=service_name,
             category_id=category_id,
             start_date=start_date,
+            billing_cycle=data['billing_cycle'],
             amount=float(data['amount']),
             total_spent=0,
             currency=data['currency'],
@@ -592,7 +596,8 @@ def get_user_subscriptions_for_bot(telegram_id):
     result = [{
         'service_name': sub.service_name,
         'amount': sub.amount,
-        'currency': sub.currency
+        'currency': sub.currency,
+        'billing_cycle': sub.billing_cycle
     } for sub in subscriptions]
 
     app.logger.info(f"Returning result: {result}")
