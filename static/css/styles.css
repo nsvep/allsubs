@@ -431,14 +431,12 @@ h1 {
     bottom: 0;
     left: 0;
     right: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
+    height: var(--navbar-height);
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 10px 0;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    background-color: var(--tg-theme-bg-color);
+    border-top: 1px solid var(--tg-theme-hint-color);
     z-index: 1000;
 }
 
@@ -1334,7 +1332,8 @@ h1 {
     }
 
     .bottom-navbar {
-        background-color: var(--tg-theme-secondary-bg-color);
+        background-color: var(--tg-theme-bg-color);
+        border-top-color: var(--tg-theme-hint-color);
         border-top: 1px solid #444;
     }
 
@@ -1406,5 +1405,132 @@ h1 {
     .card {
         box-shadow: none;
         border: 1px solid #ddd;
+    }
+}
+
+/* Адаптация для Android-устройств */
+@supports (-webkit-overflow-scrolling: touch) {
+    body {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .bottom-navbar {
+        padding-bottom: env(safe-area-inset-bottom);
+        height: calc(var(--navbar-height) + env(safe-area-inset-bottom));
+    }
+
+    .container {
+        padding-bottom: calc(var(--navbar-height) + env(safe-area-inset-bottom) + 20px);
+    }
+}
+
+/* Улучшение отзывчивости для сенсорных экранов */
+.btn, .nav-item, .subscription-item, .calendar-day {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active, .nav-item:active, .subscription-item:active, .calendar-day:active {
+    opacity: 0.7;
+}
+
+/* Оптимизация шрифтов для Android */
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 2dppx) {
+    body {
+        -webkit-font-smoothing: subpixel-antialiased;
+    }
+}
+
+/* Улучшение прокрутки для Android */
+.container, .subscription-item, .calendar-container {
+    -webkit-overflow-scrolling: touch;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--tg-theme-hint-color);
+    border-radius: 3px;
+}
+
+/* Адаптации для iPhone */
+
+/* Поддержка безопасной зоны для iPhone X и новее */
+@supports (padding: max(0px)) {
+    body {
+        padding-top: max(env(safe-area-inset-top), 20px);
+        padding-bottom: max(env(safe-area-inset-bottom), 20px);
+    }
+
+    .container {
+        padding-left: max(env(safe-area-inset-left), 15px);
+        padding-right: max(env(safe-area-inset-right), 15px);
+    }
+
+    .bottom-navbar {
+        padding-bottom: max(env(safe-area-inset-bottom), 10px);
+    }
+}
+
+/* Исправление для iPhone 5/SE (первого поколения) */
+@media only screen 
+and (min-device-width : 320px) 
+and (max-device-width : 568px) {
+    body {
+        font-size: 14px;
+    }
+
+    .subscription-item {
+        padding: 12px;
+    }
+
+    .btn {
+        padding: 8px 12px;
+    }
+}
+
+/* Оптимизация для iPhone с челкой */
+@supports (padding-top: constant(safe-area-inset-top)) {
+    .container {
+        padding-top: constant(safe-area-inset-top);
+    }
+}
+
+/* Улучшение производительности анимаций на iOS */
+.animated {
+    -webkit-animation-duration: 0.3s;
+    animation-duration: 0.3s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
+
+/* Исправление проблем с фиксированным позиционированием на iOS */
+.fixed-element {
+    position: fixed;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+}
+
+/* Отключение увеличения шрифта на iPhone в горизонтальной ориентации */
+@media screen and (max-device-width: 767px) and (orientation: landscape) {
+    body {
+        -webkit-text-size-adjust: 100%;
+    }
+}
+
+/* Улучшение отображения на iPhone 12 Pro Max и iPhone 13 Pro Max */
+@media only screen 
+and (device-width: 428px) 
+and (device-height: 926px) 
+and (-webkit-device-pixel-ratio: 3) {
+    .container {
+        max-width: 414px;
+        margin: 0 auto;
     }
 }
