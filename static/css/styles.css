@@ -598,13 +598,6 @@ h1 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.section-title {
-    font-size: 24px;
-    margin-bottom: 20px;
-    color: var(--tg-theme-text-color);
-    text-align: center;
-}
-
 .calendar-header {
     display: flex;
     justify-content: space-between;
@@ -1541,14 +1534,6 @@ and (-webkit-device-pixel-ratio: 3) {
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 12px;
-}
-
-.analytics-section-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--tg-theme-text-color);
-    margin-bottom: 12px;
-    text-align: center;
 }
 
 .analytics-header {
