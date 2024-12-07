@@ -40,6 +40,11 @@ const elements = {
     nextMonth: document.getElementById('nextMonth'),
     eventList: document.getElementById('eventList'),
     billingCycle: document.getElementById('billingCycle'),
+    analyticsView: document.getElementById('analytics-view'),
+    analyticsAmount: document.getElementById('analytics-amount'),
+    analyticsCurrency: document.getElementById('analytics-currency'),
+    analyticsButtons: document.querySelectorAll('.analytics-btn'),
+    analyticsLabel: document.getElementById('analytics-label'),
 
 };
 
@@ -231,6 +236,8 @@ async function init() {
                     console.log('Billing cycle changed:', this.value);
                     debugLog('Billing cycle changed:', this.value);
                 });
+
+                initAnalytics()
 
                 debugLog('Инициализация приложения завершена успешно');
 
@@ -1318,9 +1325,11 @@ async function showCalendar(event) {
     if (event) event.preventDefault();
     hideAllSections();
     elements.calendarView.style.display = 'block';
+    elements.analyticsView.style.display = 'block';
     debugLog('Начало отображения календаря');
     await loadEvents(); // Загружаем события перед рендерингом календаря
     renderCalendar();
+    loadAnalytics();
     toggleNavbar(true);
     debugLog('Завершение отображения календаря');
 }
@@ -1329,9 +1338,12 @@ function hideAllSections() {
     const sections = document.querySelectorAll('main > section');
     sections.forEach(section => section.style.display = 'none');
 
-    // Явно скрываем календарь и профиль
+    // Явно скрываем календарь, профиль и аналитику
     if (elements.calendarView) {
         elements.calendarView.style.display = 'none';
+    }
+    if (elements.analyticsView) {
+        elements.analyticsView.style.display = 'none';
     }
     const profileSection = document.getElementById('profile-section');
     if (profileSection) {
@@ -1751,6 +1763,66 @@ function applySelectStylesBasedOnTheme() {
         }
     `;
     document.head.appendChild(style);
+}
+
+function initAnalytics() {
+    elements.analyticsButtons.forEach(btn => {
+        btn.addEventListener('click', () => updateAnalyticsDisplay(btn.dataset.type));
+    });
+}
+
+function loadAnalytics() {
+    fetch(`/api/analytics/${userId}`)
+        .then(response => response.json())
+        .then(data => {
+            analyticsData = data;
+            updateAnalyticsDisplay('current');
+        })
+        .catch(error => {
+            console.error('Error loading analytics:', error);
+            debugLog(`Ошибка при загрузке аналитики: ${error.message}`);
+        });
+}
+
+function updateAnalyticsDisplay(type) {
+    let amount = 0;
+    let label = '';
+
+    switch (type) {
+        case 'current':
+            amount = analyticsData.current_month_expenses;
+            label = 'расходы в этом месяце';
+            break;
+        case 'total':
+            amount = analyticsData.total_expenses;
+            label = 'общие расходы';
+            break;
+        case 'future':
+            amount = analyticsData.future_expenses;
+            label = 'прогноз до конца года';
+            break;
+    }
+
+    // Анимация изменения суммы
+    anime({
+        targets: '#analytics-amount',
+        innerHTML: [parseFloat(elements.analyticsAmount.textContent), amount],
+        round: 1,
+        duration: 800,
+        easing: 'easeInOutExpo'
+    });
+
+    // Обновление лейбла
+    elements.analyticsLabel.textContent = label;
+
+    // Обновление активной кнопки
+    elements.analyticsButtons.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.type === type);
+    });
+}
+
+function formatNumber(number) {
+    return new Intl.NumberFormat('ru-RU').format(number);
 }
 
 // Инициализация приложения при загрузке

@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from datetime import datetime, date, timedelta, time
 from calendar import monthrange
-from sqlalchemy.sql import func
+from sqlalchemy.sql import func, extract
 import pytz
 from dateutil.relativedelta import relativedelta
 from flask_cors import CORS
@@ -720,6 +720,47 @@ def get_currencies():
 def get_banks():
     banks = Bank.query.all()
     return jsonify([{'id': b.id, 'name': b.name} for b in banks])
+
+@app.route('/api/analytics/<int:user_id>')
+def get_analytics(user_id):
+    today = datetime.now(pytz.timezone('Europe/Moscow')).date()
+    current_month_start = today.replace(day=1)
+    current_year_end = today.replace(month=12, day=31)
+
+    # Траты за текущий месяц
+    current_month_expenses = db.session.query(func.sum(Payment.amount)).filter(
+        Payment.user_id == user_id,
+        Payment.payment_date >= current_month_start,
+        Payment.payment_date <= today
+    ).scalar() or 0
+
+    # Все траты за всё время
+    total_expenses = db.session.query(func.sum(Subscription.total_spent)).filter(
+        Subscription.user_id == user_id
+    ).scalar() or 0
+
+    # Прогноз трат до конца года
+    active_subscriptions = Subscription.query.filter(
+        Subscription.user_id == user_id,
+        Subscription.is_archived == False
+    ).all()
+
+    future_expenses = 0
+    for sub in active_subscriptions:
+        next_payment = sub.next_payment_date or sub.start_date
+        while next_payment <= current_year_end:
+            if next_payment > today:
+                future_expenses += sub.amount
+            if sub.billing_cycle == 'monthly':
+                next_payment += relativedelta(months=1)
+            elif sub.billing_cycle == 'yearly':
+                next_payment += relativedelta(years=1)
+
+    return jsonify({
+        'current_month_expenses': round(current_month_expenses, 2),
+        'total_expenses': round(total_expenses, 2),
+        'future_expenses': round(future_expenses, 2)
+    })
 
 scheduler.add_job(
     id='update_subscription_payments_job',

@@ -129,8 +129,23 @@
             </div>
         </section>
 
+        <section id="analytics-view" style="display: none;">
+            <div class="analytics-container">
+                <div class="analytics-content">
+                    <div class="analytics-buttons">
+                        <button class="analytics-btn active" data-type="current">Текущий месяц</button>
+                        <button class="analytics-btn" data-type="total">Всё время</button>
+                        <button class="analytics-btn" data-type="future">Прогноз</button>
+                    </div>
+                    <div class="analytics-data">
+                        <span id="analytics-amount">0</span>
+                        <span id="analytics-currency">₽</span>
+                    </div>
+                    <div class="analytics-label" id="analytics-label">расходы в этом месяце</div>
+                </div>
+            </div>
+        </section>
         <section id="calendar-view" style="display: none;">
-            <h2 class="section-title">Календарь платежей</h2>
             <div class="calendar-wrapper">
                 <div class="calendar-container">
                     <div class="calendar-header">
