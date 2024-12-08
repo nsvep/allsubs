@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Используйте Telegram</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #0088cc, #005580);
+            color: #ffffff;
+        }
+        .container {
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            max-width: 80%;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0;
+        }
+        .telegram-button {
+            background-color: #ffffff;
+            color: #0088cc;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+            display: inline-block;
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        .telegram-button:hover {
+            background-color: #e6f7ff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px) scale(1.05);
+        }
+        .telegram-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 2rem;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg class="telegram-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+            <defs>
+                <linearGradient id="a" x1=".667" x2=".417" y1=".167" y2=".75">
+                    <stop offset="0" stop-color="#37aee2"/>
+                    <stop offset="1" stop-color="#1e96c8"/>
+                </linearGradient>
+            </defs>
+            <circle cx="120" cy="120" r="120" fill="url(#a)"/>
+            <path fill="#c8daea" d="M98 175c-3.888 0-3.227-1.468-4.568-5.17L82 132.207 170 80"/>
+            <path fill="#a9c9dd" d="M98 175c3 0 4.325-1.372 6-3l16-15.558-19.958-12.035"/>
+            <path fill="#f6fbfe" d="M100.04 144.41l48.36 35.729c5.519 3.045 9.501 1.468 10.876-5.123l19.685-92.763c2.015-8.08-3.08-11.746-8.36-9.349l-115.59 44.571c-7.89 3.165-7.843 7.567-1.438 9.528l29.663 9.259 68.673-43.325c3.242-1.966 6.218-.91 3.776 1.258"/>
+        </svg>
+        <h1>Откройте приложение в Telegram</h1>
+        <p>Для использования этого приложения, пожалуйста, откройте его через Telegram.</p>
+        <a href="https://t.me/subt3stbot" class="telegram-button">Открыть в Telegram</a>
+    </div>
+
+    <script>
+        anime.timeline({
+            easing: 'easeOutExpo',
+        })
+        .add({
+            targets: '.container',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 1000,
+        })
+        .add({
+            targets: '.telegram-icon',
+            opacity: [0, 1],
+            scale: [0.5, 1],
+            duration: 800,
+        }, '-=800')
+        .add({
+            targets: 'h1',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+        }, '-=600')
+        .add({
+            targets: 'p',
+            opacity: [0, 1],
+            translateY: [20, 0],
+            duration: 800,
+        }, '-=600')
+        .add({
+            targets: '.telegram-button',
+            opacity: [0, 1],
+            scale: [0.9, 1],
+            duration: 800,
+        }, '-=600');
+    </script>
+</body>
+</html>

@@ -96,7 +96,7 @@ async function init() {
     if (!telegramUser) {
         debugLog('Ошибка: данные пользователя Telegram не найдены');
         console.error('Telegram User data not found');
-        setTimeout(hideLoadingScreen, 3000);
+        window.location.href = '/not_in_telegram';
         return;
     }
 

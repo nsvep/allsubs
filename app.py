@@ -776,6 +776,10 @@ def get_analytics(user_id):
 
     return jsonify(analytics_data)
 
+@app.route('/not_in_telegram')
+def not_in_telegram():
+    return render_template('not_in_telegram.html')
+
 scheduler.add_job(
     id='update_subscription_payments_job',
     func=update_subscription_payments,
