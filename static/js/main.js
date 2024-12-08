@@ -13,6 +13,9 @@ let sortOrder = {
 let currentDate = new Date();
 let subscriptions = [];
 let events = [];
+let analyticsData = {};
+let currentCurrencyIndex = 0;
+let currentAnalyticsType = 'current';
 
 // Кэширование DOM-элементов
 const elements = {
@@ -237,7 +240,7 @@ async function init() {
                     debugLog('Billing cycle changed:', this.value);
                 });
 
-                initAnalytics()
+                initAnalytics();
 
                 debugLog('Инициализация приложения завершена успешно');
 
@@ -1766,9 +1769,40 @@ function applySelectStylesBasedOnTheme() {
 }
 
 function initAnalytics() {
+    loadAnalyticsData();
+
     elements.analyticsButtons.forEach(btn => {
-        btn.addEventListener('click', () => updateAnalyticsDisplay(btn.dataset.type));
+        btn.addEventListener('click', () => {
+            currentAnalyticsType = btn.dataset.type;
+            elements.analyticsButtons.forEach(b => b.classList.toggle('active', b === btn));
+            updateAnalyticsDisplay();
+        });
     });
+
+    const slider = document.getElementById('analytics-slider');
+    const hammer = new Hammer(slider);
+
+    hammer.on('swipeleft swiperight', (ev) => {
+        ev.preventDefault(); // Предотвращаем действие по умолчанию
+        const currencies = Object.keys(analyticsData);
+        if (ev.type === 'swipeleft' && currentCurrencyIndex < currencies.length - 1) {
+            currentCurrencyIndex++;
+        } else if (ev.type === 'swiperight' && currentCurrencyIndex > 0) {
+            currentCurrencyIndex--;
+        }
+        updateAnalyticsDisplay();
+    });
+
+    // Предотвращаем распространение события свайпа
+    slider.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
+
+    // Предотвращаем скролл на всем контейнере аналитики
+    const analyticsContainer = document.querySelector('.analytics-container');
+    analyticsContainer.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+    }, { passive: false });
 }
 
 function loadAnalytics() {
@@ -1784,41 +1818,93 @@ function loadAnalytics() {
         });
 }
 
-function updateAnalyticsDisplay(type) {
-    let amount = 0;
-    let label = '';
+function updateAnalyticsDisplay() {
+    const currencies = Object.keys(analyticsData);
+    if (currencies.length === 0) return;
 
-    switch (type) {
-        case 'current':
-            amount = analyticsData.current_month_expenses;
-            label = 'расходы в этом месяце';
-            break;
-        case 'total':
-            amount = analyticsData.total_expenses;
-            label = 'общие расходы';
-            break;
-        case 'future':
-            amount = analyticsData.future_expenses;
-            label = 'прогноз до конца года';
-            break;
+    const currency = currencies[currentCurrencyIndex];
+    const data = analyticsData[currency];
+
+    const labels = {
+        'current': 'расходы в этом месяце',
+        'total': 'общие расходы',
+        'future': 'прогноз до конца года'
+    };
+
+    const amountMapping = {
+        'current': 'current_month_expenses',
+        'total': 'total_expenses',
+        'future': 'future_expenses'
+    };
+
+    const amount = data[amountMapping[currentAnalyticsType]];
+    const amountElement = document.getElementById('analytics-amount');
+    const currencyElement = document.getElementById('analytics-currency');
+    const labelElement = document.getElementById('analytics-label');
+
+    amountElement.textContent = amount.toFixed(2);
+    currencyElement.textContent = currency;
+    labelElement.textContent = labels[currentAnalyticsType];
+
+    // Update pagination
+    const paginationContainer = document.querySelector('.analytics-pagination');
+    paginationContainer.innerHTML = '';
+    currencies.forEach((_, index) => {
+        const dot = document.createElement('span');
+        dot.className = 'pagination-dot' + (index === currentCurrencyIndex ? ' active' : '');
+        paginationContainer.appendChild(dot);
+    });
+}
+
+async function loadAnalyticsData() {
+    try {
+        const response = await fetch(`/api/analytics/${userId}`);
+        analyticsData = await response.json();
+        updateAnalyticsDisplay();
+    } catch (error) {
+        console.error('Error loading analytics data:', error);
+    }
+}
+
+function initAnalyticsDisplay() {
+    const currencies = Object.keys(analyticsData);
+    const sliderContainer = document.getElementById('analytics-slider');
+    const paginationContainer = document.querySelector('.analytics-pagination');
+
+    sliderContainer.innerHTML = '';
+    paginationContainer.innerHTML = '';
+
+    currencies.forEach((currency, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'analytics-slide';
+        slide.innerHTML = `
+            <div class="analytics-data">
+                <span id="analytics-amount-${currency}">0</span>
+                <span id="analytics-currency-${currency}">${currency}</span>
+            </div>
+            <div class="analytics-label" id="analytics-label-${currency}">расходы в этом месяце</div>
+        `;
+        sliderContainer.appendChild(slide);
+
+        const dot = document.createElement('span');
+        dot.className = 'pagination-dot';
+        if (index === 0) dot.classList.add('active');
+        paginationContainer.appendChild(dot);
+    });
+
+    if (currencies.length > 1) {
+        const hammer = new Hammer(sliderContainer);
+        hammer.on('swipeleft swiperight', (ev) => {
+            if (ev.type === 'swipeleft' && currentCurrencyIndex < currencies.length - 1) {
+                currentCurrencyIndex++;
+            } else if (ev.type === 'swiperight' && currentCurrencyIndex > 0) {
+                currentCurrencyIndex--;
+            }
+            updateAnalyticsDisplay(currencies[currentCurrencyIndex]);
+        });
     }
 
-    // Анимация изменения суммы
-    anime({
-        targets: '#analytics-amount',
-        innerHTML: [parseFloat(elements.analyticsAmount.textContent), amount],
-        round: 1,
-        duration: 800,
-        easing: 'easeInOutExpo'
-    });
-
-    // Обновление лейбла
-    elements.analyticsLabel.textContent = label;
-
-    // Обновление активной кнопки
-    elements.analyticsButtons.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.type === type);
-    });
+    updateAnalyticsDisplay(currencies[0]);
 }
 
 function formatNumber(number) {

@@ -1534,6 +1534,10 @@ and (-webkit-device-pixel-ratio: 3) {
     padding: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     margin-bottom: 12px;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
 
 .analytics-header {
@@ -1571,10 +1575,9 @@ and (-webkit-device-pixel-ratio: 3) {
 }
 
 .analytics-data {
-    display: flex;
-    justify-content: center;
-    align-items: baseline;
-    margin-bottom: 8px;
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
 }
 
 #analytics-amount {
@@ -1595,3 +1598,45 @@ and (-webkit-device-pixel-ratio: 3) {
     color: var(--tg-theme-hint-color);
 }
 
+.analytics-slider {
+    width: 100%;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.analytics-slide {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.analytics-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.pagination-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--tg-theme-hint-color);
+    margin: 0 5px;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+}
+
+.pagination-dot.active {
+    opacity: 1;
+}
+
+#analytics-amount, #analytics-currency {
+    display: inline-block;
+}
+
+#analytics-label {
+    text-align: center;
+    font-size: 16px;
+    color: var(--tg-theme-hint-color);
+}
