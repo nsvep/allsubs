@@ -1566,7 +1566,7 @@ and (-webkit-device-pixel-ratio: 3) {
     color: var(--tg-theme-text-color);
     font-size: 12px;
     font-weight: bold;
-    transition: all 0.3s ease;
+    transition: background-color 0.2s, color 0.2s;
 }
 
 .analytics-btn.active {
@@ -1574,10 +1574,16 @@ and (-webkit-device-pixel-ratio: 3) {
     color: var(--tg-theme-button-text-color);
 }
 
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
 .analytics-data {
     font-size: 24px;
     margin-bottom: 10px;
     text-align: center;
+    animation: fadeInOut 0.3s ease-out;
 }
 
 #analytics-amount {
@@ -1602,6 +1608,7 @@ and (-webkit-device-pixel-ratio: 3) {
     width: 100%;
     overflow: hidden;
     touch-action: none;
+    transition: transform 0.3s ease-out;
 }
 
 .analytics-slide {
@@ -1609,6 +1616,7 @@ and (-webkit-device-pixel-ratio: 3) {
     display: flex;
     flex-direction: column;
     align-items: center;
+    transition: transform 0.3s ease-out;
 }
 
 .analytics-pagination {
