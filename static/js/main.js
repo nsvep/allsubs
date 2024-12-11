@@ -568,6 +568,7 @@ async function saveSubscription(subscriptionId = null) {
             debugLog('Подписка успешно сохранена');
             toggleAddSubscriptionForm(false);
             await updateSubscriptionsList();
+            resetForm();
             showAlert({
                 icon: 'success',
                 title: subscriptionId ? 'Подписка обновлена' : 'Подписка добавлена',
@@ -719,8 +720,8 @@ function toggleAddSubscriptionForm(show) {
     }
 }
 
-// Сброс формы
 function resetForm() {
+    // Сброс значений полей формы
     elements.serviceSelect.value = '';
     elements.customService.value = '';
     elements.categorySelect.value = '';
@@ -730,9 +731,25 @@ function resetForm() {
     elements.bank.value = '';
     elements.cardLast4.value = '';
     elements.sendNotifications.checked = false;
-    onServiceChange();
+    
+    // Сброс Select2
+    $(elements.serviceSelect).val(null).trigger('change');
+    
+    // Сброс кастомных стилей и классов Select2
+    $('.select2-container--classic').removeClass('select2-container--focus');
+    $('.select2-selection--single').removeClass('select2-selection--focus');
+    
+    // Скрываем все слайды
+    const slides = document.querySelectorAll('.subscription-slide');
+    slides.forEach(slide => {
+        slide.style.display = 'none';
+    });
+    
+    // Сброс текущего слайда
     currentSlide = 1;
-    showSlide(currentSlide);
+    
+    // Обновляем состояние формы
+    onServiceChange();
     updateNavigationButtons();
     updateProgressBar();
 }
