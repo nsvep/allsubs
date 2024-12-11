@@ -1859,7 +1859,7 @@ function updateAnalyticsDisplay() {
     const currencyElement = document.getElementById('analytics-currency');
     const labelElement = document.getElementById('analytics-label');
 
-    amountElement.textContent = amount.toFixed(2);
+    amountElement.textContent = Math.floor(amount);
     currencyElement.textContent = currency;
     labelElement.textContent = labels[currentAnalyticsType];
 
