@@ -1316,9 +1316,6 @@ async function showProfilePage() {
     if (userData) {
         profileSection.innerHTML = `
             <div class="profile-container">
-                <div class="profile-header">
-                    <h2>Профиль</h2>
-                </div>
                 <div class="profile-info">
                     <p class="user-name">${userData.first_name}</p>
                     <div class="stats-wrapper">
@@ -1328,7 +1325,7 @@ async function showProfilePage() {
                                 <span class="stat-value">${userData.active_subscriptions}</span>
                                 <span class="stat-label">Активные</span>
                             </div>
-                            <div class="stat-item">
+                            <div class="stat-item clickable" onclick="showArchivedSubscriptions()">
                                 <span class="stat-value">${userData.archived_subscriptions}</span>
                                 <span class="stat-label">В архиве</span>
                             </div>
@@ -1360,6 +1357,73 @@ async function showProfilePage() {
 
     // Добавляем кнопку "Назад"
     addBackButton();
+}
+
+async function showArchivedSubscriptions() {
+    try {
+        const response = await fetch(`/get_archived_subscriptions/${userId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch archived subscriptions');
+        }
+        const archivedSubscriptions = await response.json();
+
+        let content = '';
+        if (archivedSubscriptions.length === 0) {
+            content = '<p>У вас нет архивных подписок.</p>';
+        } else {
+            content = archivedSubscriptions.map(sub => `
+                <div class="archived-subscription">
+                    <span>${sub.service} - ${sub.amount} ${sub.currency}</span>
+                    <button onclick="unarchiveSubscription(${sub.id})" class="unarchive-btn">Разархивировать</button>
+                </div>
+            `).join('');
+        }
+
+        showAlert({
+            title: 'Архивные подписки',
+            html: content,
+            showCloseButton: true,
+            showConfirmButton: false,
+            customClass: {
+                container: 'archived-subscriptions-alert'
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching archived subscriptions:', error);
+        showAlert({
+            title: 'Ошибка',
+            text: 'Не удалось загрузить архивные подписки.',
+            icon: 'error'
+        });
+    }
+}
+
+async function unarchiveSubscription(subscriptionId) {
+    try {
+        const response = await fetch(`/unarchive_subscription/${subscriptionId}`, {
+            method: 'POST'
+        });
+        if (!response.ok) {
+            throw new Error('Failed to unarchive subscription');
+        }
+        await showAlert({
+            title: 'Успех',
+            text: 'Подписка успешно разархивирована.',
+            icon: 'success',
+            timer: 2000,
+            timerProgressBar: true,
+            showConfirmButton: false
+        });
+        await updateSubscriptionsList();
+        showArchivedSubscriptions(); // Обновляем список архивных подписок
+    } catch (error) {
+        console.error('Error unarchiving subscription:', error);
+        showAlert({
+            title: 'Ошибка',
+            text: 'Не удалось разархивировать подписку.',
+            icon: 'error'
+        });
+    }
 }
 
 function animateSubscriptionsReturn() {

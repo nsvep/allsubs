@@ -547,22 +547,6 @@ def archive_subscription(subscription_id):
             "last_payment_date": subscription.last_payment_date.isoformat()
         })
 
-@app.route('/unarchive_subscription/<int:subscription_id>', methods=['POST'])
-def unarchive_subscription(subscription_id):
-    with app.app_context():
-        subscription = Subscription.query.get(subscription_id)
-        if not subscription:
-            return jsonify({"error": "Subscription not found"}), 404
-
-        subscription.is_archived = False
-        db.session.commit()
-
-        return jsonify({
-            "message": "Subscription unarchived successfully",
-            "subscription_id": subscription.id
-        })
-
-
 @app.route('/update_subscription/<int:subscription_id>', methods=['POST'])
 def update_subscription(subscription_id):
     data = request.json
@@ -793,6 +777,30 @@ def get_user_profile(user_id):
         "first_name": user.first_name,
         "active_subscriptions": active_subscriptions,
         "archived_subscriptions": archived_subscriptions
+    })
+
+@app.route('/get_archived_subscriptions/<int:user_id>')
+def get_archived_subscriptions(user_id):
+    archived_subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=True).all()
+    return jsonify([{
+        'id': sub.id,
+        'service': sub.service_name,  # Изменено с sub.service на sub.service_name
+        'amount': sub.amount,
+        'currency': sub.currency
+    } for sub in archived_subscriptions])
+
+@app.route('/unarchive_subscription/<int:subscription_id>', methods=['POST'])
+def unarchive_subscription(subscription_id):
+    subscription = Subscription.query.get(subscription_id)
+    if not subscription:
+        return jsonify({"error": "Subscription not found"}), 404
+
+    subscription.is_archived = False
+    db.session.commit()
+
+    return jsonify({
+        "message": "Subscription unarchived successfully",
+        "subscription_id": subscription.id
     })
 
 scheduler.add_job(
