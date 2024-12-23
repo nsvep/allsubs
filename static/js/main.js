@@ -1375,7 +1375,7 @@ async function showArchivedSubscriptions() {
             content = archivedSubscriptions.map(sub => `
                 <div class="archived-subscription">
                     <span>${sub.service} - ${sub.amount} ${sub.currency}</span>
-                    <button onclick="unarchiveSubscription(${sub.id})" class="unarchive-btn">Разархивировать</button>
+                    <button onclick="unarchiveSubscription(${sub.id})" class="unarchive-btn">Вернуть</button>
                 </div>
             `).join('');
         }
