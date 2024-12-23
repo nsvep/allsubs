@@ -1333,12 +1333,27 @@ async function showProfilePage() {
                         </div>
                     </div>
                 </div>
+                <button id="premiumButton" class="premium-button ${userData.is_premium ? 'premium-active' : 'premium-inactive'}">
+                    ${userData.is_premium ? 'Premium активен' : 'Активировать Premium'}
+                </button>
                 <button id="feedbackButton" class="feedback-button">Обратная связь</button>
             </div>
         `;
 
         // Добавляем обработчик для кнопки обратной связи
         document.getElementById('feedbackButton').addEventListener('click', showFeedbackForm);
+
+        // Добавляем обработчик для кнопки Premium
+        document.getElementById('premiumButton').addEventListener('click', () => {
+            if (!userData.is_premium) {
+                // Здесь будет логика для активации Premium
+                showAlert({
+                    title: 'Premium',
+                    text: 'Скоро вы сможете активировать Premium подписку!',
+                    icon: 'info'
+                });
+            }
+        });
     } else {
         profileSection.innerHTML = '<p>Не удалось загрузить данные профиля.</p>';
     }

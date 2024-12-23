@@ -42,6 +42,7 @@ class User(db.Model):
     last_name = db.Column(db.String(50))
     username = db.Column(db.String(50))
     subscriptions = db.relationship('Subscription', backref='user', lazy=True)
+    is_premium = db.Column(db.Boolean, default=False)
 
 
 class Subscription(db.Model):
@@ -132,17 +133,20 @@ class BaseModelView(ModelView):
 class UserView(BaseModelView):
     column_exclude_list = ['created_at']
     column_searchable_list = ['telegram_id', 'first_name', 'last_name', 'username']
-    column_filters = ['created_at', 'telegram_id']
+    column_filters = ['created_at', 'telegram_id', 'is_premium']
     column_labels = {
         'id': 'ID',
         'telegram_id': 'Telegram ID',
         'first_name': 'Имя',
         'last_name': 'Фамилия',
         'username': 'Имя пользователя',
-        'created_at': 'Дата создания'
+        'created_at': 'Дата создания',
+        'is_premium': 'Премиум статус'
     }
-    column_list = ['id', 'telegram_id', 'first_name', 'last_name', 'username', 'created_at']
-    column_default_sort = ('id', True)  # Сортировка по ID по умолчанию, по убыванию
+    column_list = ['id', 'telegram_id', 'first_name', 'last_name', 'username', 'created_at', 'is_premium']
+    column_default_sort = ('id', True)
+
+    form_columns = ('telegram_id', 'first_name', 'last_name', 'username', 'is_premium')
 
     def _telegram_id_formatter(view, context, model, name):
         return f"{model.telegram_id}"
@@ -150,6 +154,10 @@ class UserView(BaseModelView):
     column_formatters = {
         'telegram_id': _telegram_id_formatter
     }
+
+    def on_model_change(self, form, model, is_created):
+        if is_created:
+            model.created_at = datetime.now(pytz.timezone('Europe/Moscow'))
 
 class SubscriptionView(BaseModelView):
     column_exclude_list = ['created_at']
@@ -776,7 +784,8 @@ def get_user_profile(user_id):
     return jsonify({
         "first_name": user.first_name,
         "active_subscriptions": active_subscriptions,
-        "archived_subscriptions": archived_subscriptions
+        "archived_subscriptions": archived_subscriptions,
+        "is_premium": user.is_premium
     })
 
 @app.route('/get_archived_subscriptions/<int:user_id>')
