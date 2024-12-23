@@ -1333,8 +1333,12 @@ async function showProfilePage() {
                         </div>
                     </div>
                 </div>
+                <button id="feedbackButton" class="feedback-button">Обратная связь</button>
             </div>
         `;
+
+        // Добавляем обработчик для кнопки обратной связи
+        document.getElementById('feedbackButton').addEventListener('click', showFeedbackForm);
     } else {
         profileSection.innerHTML = '<p>Не удалось загрузить данные профиля.</p>';
     }
@@ -1358,6 +1362,82 @@ async function showProfilePage() {
 
     // Добавляем кнопку "Назад"
     addBackButton();
+}
+
+function showFeedbackForm() {
+    let currentType = 'problem';
+
+    showAlert({
+        title: 'Обратная связь',
+        html: `
+            <div class="feedback-type-toggle">
+                <button class="toggle-btn active" data-type="problem">Проблема</button>
+                <button class="toggle-btn" data-type="cooperation">Сотрудничество</button>
+            </div>
+            <textarea id="feedbackText" class="swal2-textarea" placeholder="Введите ваше сообщение"></textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Отправить',
+        cancelButtonText: 'Отмена',
+        preConfirm: () => {
+            const feedbackText = document.getElementById('feedbackText').value;
+            if (!feedbackText.trim()) {
+                Swal.showValidationMessage('Пожалуйста, введите текст обратной связи');
+                return false;
+            }
+            return { type: currentType, text: feedbackText };
+        },
+        didOpen: () => {
+            const toggleBtns = document.querySelectorAll('.toggle-btn');
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toggleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentType = btn.dataset.type;
+                });
+            });
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            sendFeedback(result.value.type, result.value.text);
+        }
+    });
+}
+
+async function sendFeedback(type, text) {
+    try {
+        const response = await fetch('/send_feedback', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Telegram-User-Id': window.Telegram.WebApp.initDataUnsafe.user.id // Добавляем ID пользователя
+            },
+            body: JSON.stringify({ type, text }),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+                showAlert({
+                    title: 'Спасибо!',
+                    text: 'Ваша обратная связь успешно отправлена.',
+                    icon: 'success',
+                });
+            } else {
+                throw new Error(result.error || 'Ошибка при отправке обратной связи');
+            }
+        } else {
+            throw new Error('Ошибка при отправке обратной связи');
+        }
+    } catch (error) {
+        console.error('Error sending feedback:', error);
+        debugLog('Error sending feedback:', error);
+        showAlert({
+            title: 'Ошибка',
+            text: 'Не удалось отправить обратную связь. Пожалуйста, попробуйте позже.',
+            icon: 'error',
+        });
+    }
 }
 
 async function showArchivedSubscriptions() {

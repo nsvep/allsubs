@@ -817,6 +817,30 @@ def unarchive_subscription(subscription_id):
         "next_payment_date": subscription.next_payment_date.isoformat()
     })
 
+@app.route('/send_feedback', methods=['POST'])
+def send_feedback():
+    try:
+        data = request.json
+        feedback_type = data['type']
+        feedback_text = data['text']
+        user_id = request.headers.get('X-Telegram-User-Id')
+
+        user = User.query.filter_by(telegram_id=user_id).first()
+
+        if user:
+            hashtag = "#проблема" if feedback_type == "problem" else "#сотрудничество"
+            username = f"@{user.username}" if user.username else "Нет username"
+            message = f"{hashtag}\n\nОт: {user.telegram_id} ({username})\n\nСообщение:\n{feedback_text}"
+            
+            send_admin_message(message)
+
+            return jsonify({"success": True}), 200
+        else:
+            return jsonify({"success": False, "error": "User not found"}), 404
+    except Exception as e:
+        app.logger.error(f"Error in send_feedback: {str(e)}")
+        return jsonify({"success": False, "error": "Internal server error"}), 500
+
 scheduler.add_job(
     id='update_subscription_payments_job',
     func=update_subscription_payments,

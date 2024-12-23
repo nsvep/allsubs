@@ -1800,3 +1800,40 @@ and (-webkit-device-pixel-ratio: 3) {
     max-height: 300px;
     overflow-y: auto;
 }
+
+.feedback-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.feedback-type-toggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.toggle-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--tg-theme-button-color);
+    background-color: transparent;
+    color: var(--tg-theme-text-color);
+    cursor: pointer;
+}
+
+.toggle-btn.active {
+    background-color: var(--tg-theme-button-color);
+    color: var(--tg-theme-button-text-color);
+}
+
+.toggle-btn:first-child {
+    border-radius: 5px 0 0 5px;
+}
+
+.toggle-btn:last-child {
+    border-radius: 0 5px 5px 0;
+}
