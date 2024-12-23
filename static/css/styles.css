@@ -573,14 +573,30 @@ h1 {
 
 .back-button {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 10px 15px;
+    top: 15px;
+    left: 15px;
     background-color: var(--tg-theme-button-color);
     color: var(--tg-theme-button-text-color);
     border: none;
-    border-radius: 5px;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.back-button:hover {
+    background-color: var(--tg-theme-secondary-bg-color);
+    transform: scale(1.1);
+}
+
+.back-button i {
+    font-size: 20px;
 }
 
 /* Календарь */

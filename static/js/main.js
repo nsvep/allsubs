@@ -1022,10 +1022,11 @@ function toggleNavbar(show) {
     } else {
         navbar.style.display = 'none';
 
-        // Добавьте кнопку "Назад" при скрытии навбара
+        // Добавляем кнопку "Назад" при скрытии навбара
         const backButton = document.createElement('button');
-        backButton.textContent = 'Назад к подпискам';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
         backButton.classList.add('back-button');
+        backButton.setAttribute('aria-label', 'Назад');
         backButton.style.opacity = '0';  // Начальная прозрачность для анимации
         backButton.addEventListener('click', () => {
             anime({
@@ -1621,15 +1622,15 @@ function addBackButton() {
     let backButton = document.querySelector('.back-button');
     if (!backButton) {
         backButton = document.createElement('button');
-        backButton.textContent = 'Назад к подпискам';
+        backButton.innerHTML = '<i class="fas fa-arrow-left"></i>';
         backButton.classList.add('back-button');
+        backButton.setAttribute('aria-label', 'Назад');
         document.querySelector('main').prepend(backButton);
     }
 
     backButton.style.display = 'block';
     backButton.addEventListener('click', handleBackButton);
 }
-
 function handleBackButton() {
     const profileSection = document.getElementById('profile-section');
     anime({
