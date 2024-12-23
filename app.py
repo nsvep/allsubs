@@ -780,6 +780,21 @@ def get_analytics(user_id):
 def not_in_telegram():
     return render_template('not_in_telegram.html')
 
+@app.route('/get_user_profile/<int:user_id>')
+def get_user_profile(user_id):
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    active_subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=False).count()
+    archived_subscriptions = Subscription.query.filter_by(user_id=user_id, is_archived=True).count()
+
+    return jsonify({
+        "first_name": user.first_name,
+        "active_subscriptions": active_subscriptions,
+        "archived_subscriptions": archived_subscriptions
+    })
+
 scheduler.add_job(
     id='update_subscription_payments_job',
     func=update_subscription_payments,

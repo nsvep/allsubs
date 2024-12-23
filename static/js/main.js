@@ -1288,20 +1288,58 @@ function hideLoadingScreen() {
     }
 }
 
-function showProfilePage() {
-    // Скрываем все секции
+async function loadUserProfile() {
+    try {
+        const response = await fetch(`/get_user_profile/${userId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user profile');
+        }
+        return await response.json();
+    } catch (error) {
+        console.error('Error loading user profile:', error);
+        return null;
+    }
+}
+
+async function showProfilePage() {
     hideAllSections();
 
-    // Показываем страницу профиля
     let profileSection = document.getElementById('profile-section');
     if (!profileSection) {
         profileSection = document.createElement('section');
         profileSection.id = 'profile-section';
-        profileSection.innerHTML = '<h2>Профиль пользователя</h2><p>Здесь будет информация о профиле.</p>';
         document.querySelector('main').appendChild(profileSection);
     }
     profileSection.style.display = 'block';
-    profileSection.style.opacity = '0';  // Начальная прозрачность для анимации
+
+    const userData = await loadUserProfile();
+    if (userData) {
+        profileSection.innerHTML = `
+            <div class="profile-container">
+                <div class="profile-header">
+                    <h2>Профиль</h2>
+                </div>
+                <div class="profile-info">
+                    <p class="user-name">${userData.first_name}</p>
+                    <div class="stats-wrapper">
+                        <h3 class="stats-title">Ваши подписки</h3>
+                        <div class="stats-container">
+                            <div class="stat-item">
+                                <span class="stat-value">${userData.active_subscriptions}</span>
+                                <span class="stat-label">Активные</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">${userData.archived_subscriptions}</span>
+                                <span class="stat-label">В архиве</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    } else {
+        profileSection.innerHTML = '<p>Не удалось загрузить данные профиля.</p>';
+    }
 
     // Скрываем иконку профиля
     if (elements.profileLink) {
@@ -1322,13 +1360,6 @@ function showProfilePage() {
 
     // Добавляем кнопку "Назад"
     addBackButton();
-
-    // Убедимся, что обработчик события добавлен
-    const backButton = document.querySelector('.back-button');
-    if (backButton) {
-        backButton.removeEventListener('click', handleBackButton); // Удаляем старый обработчик, если он есть
-        backButton.addEventListener('click', handleBackButton); // Добавляем новый обработчик
-    }
 }
 
 function animateSubscriptionsReturn() {
