@@ -1773,12 +1773,11 @@ and (-webkit-device-pixel-ratio: 3) {
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 .unarchive-btn:hover {
     background-color: var(--tg-theme-secondary-bg-color);
-    color: var(--tg-theme-text-color);
 }
 
 .archived-subscriptions-alert .swal2-html-container {

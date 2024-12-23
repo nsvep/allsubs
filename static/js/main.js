@@ -1399,30 +1399,53 @@ async function showArchivedSubscriptions() {
 }
 
 async function unarchiveSubscription(subscriptionId) {
-    try {
-        const response = await fetch(`/unarchive_subscription/${subscriptionId}`, {
-            method: 'POST'
-        });
-        if (!response.ok) {
-            throw new Error('Failed to unarchive subscription');
+    const { value: nextPaymentDate } = await Swal.fire({
+        title: 'Укажите дату следующего платежа',
+        input: 'date',
+        inputAttributes: {
+            min: new Date().toISOString().split("T")[0] // Устанавливаем минимальную дату как сегодня
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Разархивировать',
+        cancelButtonText: 'Отмена',
+        inputValidator: (value) => {
+            if (!value) {
+                return 'Вы должны выбрать дату!'
+            }
         }
-        await showAlert({
-            title: 'Успех',
-            text: 'Подписка успешно разархивирована.',
-            icon: 'success',
-            timer: 2000,
-            timerProgressBar: true,
-            showConfirmButton: false
-        });
-        await updateSubscriptionsList();
-        showArchivedSubscriptions(); // Обновляем список архивных подписок
-    } catch (error) {
-        console.error('Error unarchiving subscription:', error);
-        showAlert({
-            title: 'Ошибка',
-            text: 'Не удалось разархивировать подписку.',
-            icon: 'error'
-        });
+    });
+
+    if (nextPaymentDate) {
+        try {
+            const response = await fetch(`/unarchive_subscription/${subscriptionId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ next_payment_date: nextPaymentDate })
+            });
+            if (!response.ok) {
+                throw new Error('Failed to unarchive subscription');
+            }
+            const data = await response.json();
+            await showAlert({
+                title: 'Успех',
+                text: `Подписка успешно разархивирована. Следующий платеж: ${new Date(data.next_payment_date).toLocaleDateString()}`,
+                icon: 'success',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false
+            });
+            await updateSubscriptionsList();
+            showArchivedSubscriptions(); // Обновляем список архивных подписок
+        } catch (error) {
+            console.error('Error unarchiving subscription:', error);
+            showAlert({
+                title: 'Ошибка',
+                text: 'Не удалось разархивировать подписку.',
+                icon: 'error'
+            });
+        }
     }
 }
 

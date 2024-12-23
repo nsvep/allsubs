@@ -791,16 +791,30 @@ def get_archived_subscriptions(user_id):
 
 @app.route('/unarchive_subscription/<int:subscription_id>', methods=['POST'])
 def unarchive_subscription(subscription_id):
+    data = request.json
     subscription = Subscription.query.get(subscription_id)
     if not subscription:
         return jsonify({"error": "Subscription not found"}), 404
 
+    try:
+        next_payment_date = datetime.strptime(data['next_payment_date'], '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({"error": "Invalid date format"}), 400
+
+    today = datetime.now(pytz.timezone('Europe/Moscow')).date()
+    if next_payment_date < today:
+        return jsonify({"error": "Next payment date cannot be in the past"}), 400
+
+    # Разархивируем подписку
     subscription.is_archived = False
+    subscription.next_payment_date = next_payment_date
+
     db.session.commit()
 
     return jsonify({
         "message": "Subscription unarchived successfully",
-        "subscription_id": subscription.id
+        "subscription_id": subscription.id,
+        "next_payment_date": subscription.next_payment_date.isoformat()
     })
 
 scheduler.add_job(
