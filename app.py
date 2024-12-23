@@ -17,6 +17,7 @@ from flask_admin.model import typefmt
 
 TELEGRAM_BOT_TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 ADMIN_CHAT_ID = 50274860  # Здесь нужно указать chat_id администратора
+FEEDBACK_GROUP_ID = -1002264720815
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -826,6 +827,19 @@ def unarchive_subscription(subscription_id):
         "next_payment_date": subscription.next_payment_date.isoformat()
     })
 
+def send_group_message(message):
+    try:
+        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": FEEDBACK_GROUP_ID,
+            "text": message
+        }
+        response = requests.post(url, json=payload)
+        if response.status_code != 200:
+            print(f"Failed to send group message. Status code: {response.status_code}")
+    except Exception as e:
+        print(f"Error sending group message: {str(e)}")
+
 @app.route('/send_feedback', methods=['POST'])
 def send_feedback():
     try:
@@ -841,7 +855,7 @@ def send_feedback():
             username = f"@{user.username}" if user.username else "Нет username"
             message = f"{hashtag}\n\nОт: {user.telegram_id} ({username})\n\nСообщение:\n{feedback_text}"
             
-            send_admin_message(message)
+            send_group_message(message)
 
             return jsonify({"success": True}), 200
         else:
