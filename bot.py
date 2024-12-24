@@ -1,9 +1,18 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 import requests
+from telegram import LabeledPrice, Invoice
+from telegram.ext import CallbackQueryHandler, PreCheckoutQueryHandler
+
+PREMIUM_PLANS = {
+    '1': {'duration': '1 месяц', 'price': 5},
+    '6': {'duration': '6 месяцев', 'price': 445},
+    '12': {'duration': '1 год', 'price': 890}
+}
 
 TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 ADMIN_CHAT_ID = 50274860
+PAYMENT_PROVIDER_TOKEN = ''
 
 WAITING_FOR_USER_ID, WAITING_FOR_RESPONSE = range(2)
 
@@ -107,6 +116,60 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Операция отменена.")
     return ConversationHandler.END
 
+async def premium_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton(f"{plan['duration']} - {plan['price']} XTR", callback_data=f"premium_{duration}_{plan['price']}")]
+        for duration, plan in PREMIUM_PLANS.items()
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text('Выберите тариф премиум подписки:', reply_markup=reply_markup)
+
+async def premium_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    duration, amount = query.data.split('_')[1:]
+    plan = PREMIUM_PLANS[duration]
+    
+    title = f"Премиум подписка на {plan['duration']}"
+    description = f"Премиум доступ к боту на {plan['duration']}"
+    payload = f"premium_{duration}_{amount}"
+    currency = "XTR"
+    prices = [LabeledPrice("Премиум подписка", plan['price'])]
+    
+    await context.bot.send_invoice(
+        chat_id=query.from_user.id,
+        title=title,
+        description=description,
+        payload=payload,
+        provider_token=PAYMENT_PROVIDER_TOKEN,
+        currency=currency,
+        prices=prices
+    )
+
+async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.pre_checkout_query
+    if query.invoice_payload.startswith('premium_'):
+        await query.answer(ok=True)
+    else:
+        await query.answer(ok=False, error_message="Что-то пошло не так...")
+
+async def successful_payment_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    payment_info = update.message.successful_payment
+    duration = payment_info.invoice_payload.split('_')[1]
+    user_id = update.effective_user.id
+    
+    # Отправляем запрос на обновление премиум статуса
+    response = requests.post('https://miniapp-nsvep.amvera.io/update_premium_status', json={
+        'user_id': user_id,
+        'duration': int(duration)
+    })
+    
+    if response.status_code == 200:
+        await update.message.reply_text(f"Спасибо за покупку! Ваш премиум статус активирован на {duration} месяцев.")
+    else:
+        await update.message.reply_text("Произошла ошибка при активации премиум статуса. Пожалуйста, свяжитесь с поддержкой.")
+
 def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -123,6 +186,11 @@ def main() -> None:
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("my_subs", my_subs))
     application.add_handler(CommandHandler("update_payments", manual_update))
+
+    application.add_handler(CommandHandler("premium", premium_command))
+    application.add_handler(CallbackQueryHandler(premium_callback, pattern='^premium_'))
+    application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))
 
     application.run_polling()
 

@@ -44,6 +44,7 @@ class User(db.Model):
     username = db.Column(db.String(50))
     subscriptions = db.relationship('Subscription', backref='user', lazy=True)
     is_premium = db.Column(db.Boolean, default=False)
+    premium_expired = db.Column(db.DateTime, nullable=True)
     runapp = db.Column(db.Integer, default=0)
     telegram_theme = db.Column(db.String(10), default='light')
 
@@ -874,6 +875,21 @@ def send_feedback():
     except Exception as e:
         app.logger.error(f"Error in send_feedback: {str(e)}")
         return jsonify({"success": False, "error": "Internal server error"}), 500
+    
+@app.route('/update_premium_status', methods=['POST'])
+def update_premium_status():
+    data = request.json
+    user_id = data['user_id']
+    duration = data['duration']  # в месяцах
+    
+    user = User.query.filter_by(telegram_id=user_id).first()
+    if user:
+        user.is_premium = True
+        user.premium_expired = datetime.now() + timedelta(days=30*int(duration))
+        db.session.commit()
+        return jsonify({"status": "success"}), 200
+    else:
+        return jsonify({"status": "error", "message": "User not found"}), 404
 
 scheduler.add_job(
     id='update_subscription_payments_job',
