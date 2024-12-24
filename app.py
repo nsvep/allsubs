@@ -45,6 +45,7 @@ class User(db.Model):
     subscriptions = db.relationship('Subscription', backref='user', lazy=True)
     is_premium = db.Column(db.Boolean, default=False)
     runapp = db.Column(db.Integer, default=0)
+    telegram_theme = db.Column(db.String(10), default='light')
 
 
 class Subscription(db.Model):
@@ -330,21 +331,24 @@ def reset_last_payment_date(subscription_id):
 @app.route('/get_user_info', methods=['POST'])
 def get_user_info():
     data = request.json
-    if not data or 'user' not in data:
+    if not data or 'user' not in data or 'theme' not in data:
         return jsonify({'status': 'error', 'message': 'Invalid data'}), 400
 
     user_data = data['user']
+    theme = data['theme']
     user = User.query.filter_by(telegram_id=user_data['id']).first()
 
     if user:
-        user.runapp += 1  # Увеличиваем счетчик запусков
+        user.runapp += 1
+        user.telegram_theme = theme  # Обновляем тему
     else:
         user = User(
             telegram_id=user_data['id'],
             first_name=user_data['first_name'],
             last_name=user_data.get('last_name', ''),
             username=user_data.get('username', ''),
-            runapp=1  # Устанавливаем счетчик запусков в 1 для нового пользователя
+            runapp=1,
+            telegram_theme=theme  # Устанавливаем тему для нового пользователя
         )
         db.session.add(user)
 
@@ -353,7 +357,8 @@ def get_user_info():
     return jsonify({
         'status': 'success',
         'user_id': user.id,
-        'runapp': user.runapp  # Возвращаем количество запусков
+        'runapp': user.runapp,
+        'telegram_theme': user.telegram_theme
     })
 
 

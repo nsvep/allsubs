@@ -112,7 +112,8 @@ async function init() {
                     first_name: telegramUser.first_name,
                     last_name: telegramUser.last_name,
                     username: telegramUser.username
-                }
+                },
+                theme: tg.colorScheme // Добавляем информацию о теме
             }),
         });
         const data = await response.json();
@@ -120,7 +121,7 @@ async function init() {
             userId = data.user_id;
             console.log('User ID set:', userId);
             showDebugOutputForAdmin(userId);
-            debugLog(`Пользователь авторизован. ID: ${userId}, Запусков: ${data.runapp}`);
+            debugLog(`Пользователь авторизован. ID: ${userId}, Запусков: ${data.runapp}, Тема: ${data.telegram_theme}`);
 
             try {
                 const [servicesData, categoriesData] = await Promise.all([
