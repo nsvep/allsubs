@@ -5,7 +5,7 @@ from telegram import LabeledPrice, Invoice
 from telegram.ext import CallbackQueryHandler, PreCheckoutQueryHandler
 
 PREMIUM_PLANS = {
-    '1': {'duration': '1 месяц', 'price': 5},
+    '1': {'duration': '1 месяц', 'price': 100},
     '6': {'duration': '6 месяцев', 'price': 445},
     '12': {'duration': '1 год', 'price': 890}
 }

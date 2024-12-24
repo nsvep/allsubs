@@ -890,6 +890,34 @@ def update_premium_status():
         return jsonify({"status": "success"}), 200
     else:
         return jsonify({"status": "error", "message": "User not found"}), 404
+    
+def check_and_update_premium_status():
+    with app.app_context():
+        try:
+            current_time = datetime.now(pytz.timezone('Europe/Moscow'))
+            send_admin_message(f"Starting premium status check at {current_time}")
+
+            expired_users = User.query.filter(User.is_premium == True, User.premium_expired <= current_time).all()
+            
+            update_count = 0
+            for user in expired_users:
+                user.is_premium = False
+                user.premium_expired = None
+                update_count += 1
+            
+            db.session.commit()
+            
+            message = f"Premium status check completed.\n"
+            message += f"Updated premium status for {update_count} users.\n"
+            message += f"Total premium users: {User.query.filter_by(is_premium=True).count()}"
+            
+            send_admin_message(message)
+            app.logger.info(message)
+
+        except Exception as e:
+            error_message = f"Error in premium status check: {str(e)}"
+            send_admin_message(error_message)
+            app.logger.error(error_message)
 
 scheduler.add_job(
     id='update_subscription_payments_job',
@@ -897,6 +925,15 @@ scheduler.add_job(
     trigger='cron',
     hour=12,
     minute=00,
+    timezone='Europe/Moscow'
+)
+
+scheduler.add_job(
+    id='check_and_update_premium_status_job',
+    func=check_and_update_premium_status,
+    trigger='interval',
+    hours=1,
+    next_run_time=datetime.now() + timedelta(seconds=10),  # Запуск через 10 секунд после старта приложения
     timezone='Europe/Moscow'
 )
 
