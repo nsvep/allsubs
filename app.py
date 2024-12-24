@@ -44,6 +44,7 @@ class User(db.Model):
     username = db.Column(db.String(50))
     subscriptions = db.relationship('Subscription', backref='user', lazy=True)
     is_premium = db.Column(db.Boolean, default=False)
+    runapp = db.Column(db.Integer, default=0)
 
 
 class Subscription(db.Model):
@@ -329,26 +330,31 @@ def reset_last_payment_date(subscription_id):
 @app.route('/get_user_info', methods=['POST'])
 def get_user_info():
     data = request.json
-    user_data = data['user']
+    if not data or 'user' not in data:
+        return jsonify({'status': 'error', 'message': 'Invalid data'}), 400
 
+    user_data = data['user']
     user = User.query.filter_by(telegram_id=user_data['id']).first()
-    if not user:
+
+    if user:
+        user.runapp += 1  # Увеличиваем счетчик запусков
+    else:
         user = User(
             telegram_id=user_data['id'],
-            first_name=user_data.get('first_name', ''),
-            last_name=user_data.get('last_name', ''),  # Используем get() с пустой строкой по умолчанию
-            username=user_data.get('username', '')
+            first_name=user_data['first_name'],
+            last_name=user_data.get('last_name', ''),
+            username=user_data.get('username', ''),
+            runapp=1  # Устанавливаем счетчик запусков в 1 для нового пользователя
         )
         db.session.add(user)
-        db.session.commit()
-    else:
-        # Обновляем данные пользователя, если он уже существует
-        user.first_name = user_data.get('first_name', user.first_name)
-        user.last_name = user_data.get('last_name', user.last_name)  # Используем get() с текущим значением по умолчанию
-        user.username = user_data.get('username', user.username)
-        db.session.commit()
 
-    return jsonify({"status": "success", "user_id": user.id})
+    db.session.commit()
+
+    return jsonify({
+        'status': 'success',
+        'user_id': user.id,
+        'runapp': user.runapp  # Возвращаем количество запусков
+    })
 
 
 @app.route('/get_subscriptions/<int:user_id>')

@@ -119,8 +119,8 @@ async function init() {
         if (data.status === 'success') {
             userId = data.user_id;
             console.log('User ID set:', userId);
-            debugLog(`Пользователь авторизован. ID: ${userId}`);
             showDebugOutputForAdmin(userId);
+            debugLog(`Пользователь авторизован. ID: ${userId}, Запусков: ${data.runapp}`);
 
             try {
                 const [servicesData, categoriesData] = await Promise.all([
