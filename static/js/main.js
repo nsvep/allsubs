@@ -1316,38 +1316,61 @@ async function showProfilePage() {
 
     const userData = await loadUserProfile();
     if (userData) {
+        const premiumExpiredDate = userData.premium_expired ? new Date(userData.premium_expired) : null;
+        const formattedPremiumDate = premiumExpiredDate ? premiumExpiredDate.toLocaleDateString() : '';
+
         profileSection.innerHTML = `
             <div class="profile-container">
-                <div class="profile-info">
-                    <p class="user-name">${userData.first_name}</p>
-                    <div class="stats-wrapper">
-                        <h3 class="stats-title">Ваши подписки</h3>
-                        <div class="stats-container">
-                            <div class="stat-item">
-                                <span class="stat-value">${userData.active_subscriptions}</span>
-                                <span class="stat-label">Активные</span>
-                            </div>
-                            <div class="stat-item clickable" onclick="showArchivedSubscriptions()">
-                                <span class="stat-value">${userData.archived_subscriptions}</span>
-                                <span class="stat-label">В архиве</span>
-                            </div>
-                        </div>
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <h2 class="user-name">${userData.first_name}</h2>
+                    <p class="user-status ${userData.is_premium ? 'premium-status' : ''}">${userData.is_premium ? 'Premium пользователь' : 'Стандартный пользователь'}</p>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-card">
+                        <h3>Активные подписки</h3>
+                        <p class="stat-value">${userData.active_subscriptions}</p>
+                    </div>
+                    <div class="stat-card clickable" onclick="showArchivedSubscriptions()">
+                        <h3>Архив подписок</h3>
+                        <p class="stat-value">${userData.archived_subscriptions}</p>
                     </div>
                 </div>
-                <button id="premiumButton" class="premium-button ${userData.is_premium ? 'premium-active' : 'premium-inactive'}">
-                    ${userData.is_premium ? 'Premium активен' : 'Активировать Premium'}
-                </button>
-                <button id="feedbackButton" class="feedback-button">Обратная связь</button>
+                <div class="premium-section">
+                    ${userData.is_premium 
+                        ? `<div class="premium-benefits">
+                            <h3>Ваши Premium преимущества:</h3>
+                            <ul>
+                                <li>Неограниченное количество подписок</li>
+                                <li>Приоритетная поддержка</li>
+                            </ul>
+                           </div>`
+                        : `<div class="premium-promo">
+                            <h3>Активируйте Premium и получите:</h3>
+                            <ul>
+                                <li>Неограниченное количество подписок</li>
+                                <li>Приоритетную поддержку</li>
+                            </ul>
+                           </div>`
+                    }
+                    <button id="premiumButton" class="action-button ${userData.is_premium ? 'premium-active' : 'premium-inactive'}">
+                        ${userData.is_premium 
+                            ? `Premium активен<br><span class="premium-expiry">до ${formattedPremiumDate}</span>` 
+                            : 'Активировать Premium'}
+                    </button>
+                </div>
+                <div class="profile-actions">
+                    <button id="feedbackButton" class="action-button">Обратная связь</button>
+                </div>
             </div>
         `;
 
-        // Добавляем обработчик для кнопки обратной связи
+        // Добавляем обработчики для кнопок (оставляем без изменений)
         document.getElementById('feedbackButton').addEventListener('click', showFeedbackForm);
-
-        // Добавляем обработчик для кнопки Premium
         document.getElementById('premiumButton').addEventListener('click', () => {
             if (!userData.is_premium) {
-                // Здесь будет логика для активации Premium
                 showAlert({
                     title: 'Premium',
                     text: 'Скоро вы сможете активировать Premium подписку!',
@@ -1356,15 +1379,13 @@ async function showProfilePage() {
             }
         });
     } else {
-        profileSection.innerHTML = '<p>Не удалось загрузить данные профиля.</p>';
+        profileSection.innerHTML = '<p class="error-message">Не удалось загрузить данные профиля.</p>';
     }
 
-    // Скрываем иконку профиля
+    // Скрываем иконку профиля и нижнюю навигацию
     if (elements.profileLink) {
         elements.profileLink.style.display = 'none';
     }
-
-    // Скрываем нижнюю навигацию
     toggleNavbar(false);
 
     // Анимация появления профиля

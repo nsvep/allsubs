@@ -1,4 +1,6 @@
 import psycopg2
+from datetime import datetime
+import pytz
 
 # Параметры подключения к базе данных
 db_uri = 'postgresql://admin:aboba@dbvsesub-nsvep.db-msk0.amvera.tech/vsesub'
@@ -10,21 +12,24 @@ def give_premium(user_id):
         conn = psycopg2.connect(db_uri)
         cur = conn.cursor()
 
-        # SQL запрос для обновления is_premium
+        # Устанавливаем дату окончания премиум статуса
+        premium_expired = datetime(2035, 1, 1, 15, 0, 0, tzinfo=pytz.timezone('Europe/Moscow'))
+
+        # SQL запрос для обновления is_premium и premium_expired
         update_query = """
         UPDATE "user"
-        SET is_premium = TRUE
+        SET is_premium = TRUE, premium_expired = %s
         WHERE id = %s
         """
 
         # Выполнение запроса
-        cur.execute(update_query, (user_id,))
+        cur.execute(update_query, (premium_expired, user_id))
         
         # Проверка, был ли обновлен пользователь
         if cur.rowcount == 0:
             print(f"Пользователь с ID {user_id} не найден.")
         else:
-            print(f"Премиум статус успешно установлен для пользователя с ID {user_id}.")
+            print(f"Премиум статус успешно установлен для пользователя с ID {user_id} до {premium_expired}.")
 
         # Подтверждение изменений
         conn.commit()

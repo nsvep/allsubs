@@ -798,7 +798,8 @@ def get_user_profile(user_id):
         "first_name": user.first_name,
         "active_subscriptions": active_subscriptions,
         "archived_subscriptions": archived_subscriptions,
-        "is_premium": user.is_premium
+        "is_premium": user.is_premium,
+        "premium_expired": user.premium_expired.isoformat() if user.premium_expired else None
     })
 
 @app.route('/get_archived_subscriptions/<int:user_id>')
