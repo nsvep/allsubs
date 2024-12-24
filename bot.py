@@ -85,10 +85,21 @@ async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> i
     user_id = context.user_data['reply_to_user_id']
     
     try:
-        await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n\n{response_text}")
-        await update.message.reply_text(f"Ответ успешно отправлен пользователю с ID {user_id}.")
+        message = (
+            "*📬 Ответ от службы поддержки*\n\n"
+            f"{response_text}\n\n"
+            "_Спасибо, что пользуетесь нашим сервисом! "
+            "Если у вас есть дополнительные вопросы, не стесняйтесь обращаться._"
+        )
+        
+        await context.bot.send_message(
+            chat_id=user_id, 
+            text=message,
+            parse_mode='Markdown'
+        )
+        await update.message.reply_text(f"✅ Ответ успешно отправлен пользователю с ID {user_id}.")
     except Exception as e:
-        await update.message.reply_text(f"Произошла ошибка при отправке сообщения: {str(e)}")
+        await update.message.reply_text(f"❌ Произошла ошибка при отправке сообщения: {str(e)}")
     
     return ConversationHandler.END
 
