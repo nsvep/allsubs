@@ -67,7 +67,7 @@ async def otvet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("У вас нет прав для выполнения этой команды.")
         return ConversationHandler.END
     
-    await update.message.reply_text("Пожалуйста, отправьте Telegram ID пользователя.")
+    await update.message.reply_text("Пожалуйста, отправьте Telegram ID пользователя. Для отмены введи /cancel ")
     return WAITING_FOR_USER_ID
 
 async def receive_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -77,7 +77,7 @@ async def receive_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         return WAITING_FOR_USER_ID
     
     context.user_data['reply_to_user_id'] = int(user_id)
-    await update.message.reply_text("Теперь отправьте ваш ответ пользователю.")
+    await update.message.reply_text("Теперь отправьте ваш ответ пользователю. Для отмены введи /cancel")
     return WAITING_FOR_RESPONSE
 
 async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
