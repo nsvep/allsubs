@@ -1,9 +1,11 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, ConversationHandler, MessageHandler, filters
 import requests
 
 TOKEN = '7567530655:AAFF43H1MTmfcdTTnFEAUh37tYOmgHAaThI'
 ADMIN_CHAT_ID = 50274860
+
+WAITING_FOR_USER_ID, WAITING_FOR_RESPONSE = range(2)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     url = "https://miniapp-nsvep.amvera.io/"
@@ -60,9 +62,53 @@ async def manual_update(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("У вас нет прав для выполнения этой команды.")
 
+async def otvet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.effective_user.id != ADMIN_CHAT_ID:
+        await update.message.reply_text("У вас нет прав для выполнения этой команды.")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("Пожалуйста, отправьте Telegram ID пользователя.")
+    return WAITING_FOR_USER_ID
+
+async def receive_user_id(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    user_id = update.message.text
+    if not user_id.isdigit():
+        await update.message.reply_text("Пожалуйста, отправьте корректный Telegram ID (только цифры).")
+        return WAITING_FOR_USER_ID
+    
+    context.user_data['reply_to_user_id'] = int(user_id)
+    await update.message.reply_text("Теперь отправьте ваш ответ пользователю.")
+    return WAITING_FOR_RESPONSE
+
+async def send_response(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    response_text = update.message.text
+    user_id = context.user_data['reply_to_user_id']
+    
+    try:
+        await context.bot.send_message(chat_id=user_id, text=f"Ответ от администратора:\n\n{response_text}")
+        await update.message.reply_text(f"Ответ успешно отправлен пользователю с ID {user_id}.")
+    except Exception as e:
+        await update.message.reply_text(f"Произошла ошибка при отправке сообщения: {str(e)}")
+    
+    return ConversationHandler.END
+
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("Операция отменена.")
+    return ConversationHandler.END
+
 def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
+    conv_handler = ConversationHandler(
+        entry_points=[CommandHandler("otvet", otvet)],
+        states={
+            WAITING_FOR_USER_ID: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_user_id)],
+            WAITING_FOR_RESPONSE: [MessageHandler(filters.TEXT & ~filters.COMMAND, send_response)],
+        },
+        fallbacks=[CommandHandler("cancel", cancel)],
+    )
+
+    application.add_handler(conv_handler)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("my_subs", my_subs))
     application.add_handler(CommandHandler("update_payments", manual_update))
