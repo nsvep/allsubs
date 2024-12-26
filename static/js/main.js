@@ -1554,6 +1554,7 @@ async function unarchiveSubscription(subscriptionId) {
                 timerProgressBar: true,
                 showConfirmButton: false
             });
+            restoreInterface();
             await updateSubscriptionsList();
             showArchivedSubscriptions(); // Обновляем список архивных подписок
         } catch (error) {
@@ -1564,6 +1565,19 @@ async function unarchiveSubscription(subscriptionId) {
                 icon: 'error'
             });
         }
+    }
+}
+
+function restoreInterface() {
+    hideAllSections();
+    elements.subscriptions.style.display = 'block';
+    toggleNavbar(true);
+    if (elements.profileLink) {
+        elements.profileLink.style.display = 'block';
+    }
+    const backButton = document.querySelector('.back-button');
+    if (backButton) {
+        backButton.remove();
     }
 }
 
