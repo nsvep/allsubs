@@ -190,8 +190,6 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
 
 async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if update.message.text.lower() == 'да':
-        message_to_send = context.user_data['message_to_send']
-        
         # Получаем список пользователей через API
         response = requests.get('https://miniapp-nsvep.amvera.io/api/get_all_users')
         if response.status_code != 200:
@@ -202,7 +200,19 @@ async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
         sent_count = 0
         for user in users:
             try:
-                await context.bot.send_message(chat_id=user['telegram_id'], text=message_to_send)
+                if 'photo' in context.user_data:
+                    # Отправляем фото с подписью
+                    await context.bot.send_photo(
+                        chat_id=user['telegram_id'],
+                        photo=context.user_data['photo'],
+                        caption=context.user_data['caption']
+                    )
+                else:
+                    # Отправляем текстовое сообщение
+                    await context.bot.send_message(
+                        chat_id=user['telegram_id'],
+                        text=context.user_data['text']
+                    )
                 sent_count += 1
             except Exception as e:
                 print(f"Failed to send message to user {user['telegram_id']}: {str(e)}")
@@ -211,6 +221,8 @@ async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     else:
         await update.message.reply_text("❌ Отправка отменена.")
     
+    # Очищаем данные пользователя
+    context.user_data.clear()
     return ConversationHandler.END
 
 async def sendall(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -218,13 +230,26 @@ async def sendall(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         await update.message.reply_text("🚫 У вас нет прав для выполнения этой команды.")
         return ConversationHandler.END
     
-    await update.message.reply_text("📝 Пожалуйста, введите сообщение, которое нужно отправить всем пользователям:")
+    await update.message.reply_text(
+        "📝 Пожалуйста, введите сообщение или отправьте фото с подписью, "
+        "которое нужно отправить всем пользователям:"
+        "для отмены введи /cancel"
+    )
     return WAITING_FOR_MESSAGE
 
 async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    context.user_data['message_to_send'] = update.message.text
+    if update.message.photo:
+        # Если есть фото, сохраняем его file_id и caption
+        context.user_data['photo'] = update.message.photo[-1].file_id
+        context.user_data['caption'] = update.message.caption or ''
+        preview = f"Фото с подписью: {context.user_data['caption']}"
+    else:
+        # Если нет фото, сохраняем только текст
+        context.user_data['text'] = update.message.text
+        preview = context.user_data['text']
+    
     await update.message.reply_text(
-        f"Вот как будет выглядеть сообщение:\n\n{update.message.text}\n\n"
+        f"Вот как будет выглядеть сообщение:\n\n{preview}\n\n"
         "Всё корректно? Отправляем? (Да/Нет)"
     )
     return WAITING_FOR_CONFIRMATION
@@ -252,11 +277,14 @@ def main() -> None:
     sendall_handler = ConversationHandler(
     entry_points=[CommandHandler('sendall', sendall)],
     states={
-        WAITING_FOR_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_message)],
+        WAITING_FOR_MESSAGE: [
+            MessageHandler(filters.TEXT & ~filters.COMMAND, receive_message),
+            MessageHandler(filters.PHOTO, receive_message)
+        ],
         WAITING_FOR_CONFIRMATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_send)],
     },
     fallbacks=[CommandHandler('cancel', cancel)]
-    )
+)
 
     application.add_handler(sendall_handler)
 
