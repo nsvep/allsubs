@@ -10,6 +10,8 @@ FEEDBACK_GROUP_ID = -1002264720815
 
 WAITING_FOR_USER_ID, WAITING_FOR_RESPONSE = range(2)
 
+WAITING_FOR_MESSAGE, WAITING_FOR_CONFIRMATION = range(2, 4)
+
 PREMIUM_PLANS = {
     '1': {'duration': '1 месяц', 'price': 1, 'emoji': '🚀'},
     '6': {'duration': '6 месяцев', 'price': 445, 'emoji': '🌟'},
@@ -186,6 +188,47 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
             "❌ Произошла ошибка при активации премиум статуса. Пожалуйста, свяжитесь с поддержкой."
         )
 
+async def confirm_send(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.message.text.lower() == 'да':
+        message_to_send = context.user_data['message_to_send']
+        
+        # Получаем список пользователей через API
+        response = requests.get('https://miniapp-nsvep.amvera.io/api/get_all_users')
+        if response.status_code != 200:
+            await update.message.reply_text("❌ Не удалось получить список пользователей.")
+            return ConversationHandler.END
+        
+        users = response.json()
+        sent_count = 0
+        for user in users:
+            try:
+                await context.bot.send_message(chat_id=user['telegram_id'], text=message_to_send)
+                sent_count += 1
+            except Exception as e:
+                print(f"Failed to send message to user {user['telegram_id']}: {str(e)}")
+        
+        await update.message.reply_text(f"✅ Сообщение отправлено {sent_count} пользователям.")
+    else:
+        await update.message.reply_text("❌ Отправка отменена.")
+    
+    return ConversationHandler.END
+
+async def sendall(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    if update.effective_user.id != ADMIN_CHAT_ID:
+        await update.message.reply_text("🚫 У вас нет прав для выполнения этой команды.")
+        return ConversationHandler.END
+    
+    await update.message.reply_text("📝 Пожалуйста, введите сообщение, которое нужно отправить всем пользователям:")
+    return WAITING_FOR_MESSAGE
+
+async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    context.user_data['message_to_send'] = update.message.text
+    await update.message.reply_text(
+        f"Вот как будет выглядеть сообщение:\n\n{update.message.text}\n\n"
+        "Всё корректно? Отправляем? (Да/Нет)"
+    )
+    return WAITING_FOR_CONFIRMATION
+
 def main() -> None:
     application = ApplicationBuilder().token(TOKEN).build()
 
@@ -205,6 +248,17 @@ def main() -> None:
         fallbacks=[CommandHandler("cancel", cancel)],
     )
     application.add_handler(conv_handler)
+
+    sendall_handler = ConversationHandler(
+    entry_points=[CommandHandler('sendall', sendall)],
+    states={
+        WAITING_FOR_MESSAGE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_message)],
+        WAITING_FOR_CONFIRMATION: [MessageHandler(filters.TEXT & ~filters.COMMAND, confirm_send)],
+    },
+    fallbacks=[CommandHandler('cancel', cancel)]
+    )
+
+    application.add_handler(sendall_handler)
 
     # Обработчики для премиум подписки
     application.add_handler(CallbackQueryHandler(premium_callback, pattern="^premium_"))

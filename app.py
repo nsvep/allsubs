@@ -920,6 +920,11 @@ def check_and_update_premium_status():
             send_admin_message(error_message)
             app.logger.error(error_message)
 
+@app.route('/api/get_all_users', methods=['GET'])
+def get_all_users():
+    users = User.query.all()
+    return jsonify([{'telegram_id': user.telegram_id} for user in users])
+
 scheduler.add_job(
     id='update_subscription_payments_job',
     func=update_subscription_payments,
